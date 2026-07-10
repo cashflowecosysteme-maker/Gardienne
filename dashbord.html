@@ -738,7 +738,7 @@
 
         var cleanDesc = imgDesc.replace(/\n/g, ' ').substring(0, 300).trim()
         var seed = Math.floor(Math.random() * 999999)
-        var primaryUrl = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(cleanDesc + ', high quality') + '?width=512&height=512&nologo=true&model=flux&seed=' + seed
+        var primaryUrl = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(cleanDesc + ', high quality, detailed, coherent composition') + '?width=768&height=768&model=flux&seed=' + seed + '&private=true'
 
         var img = document.createElement('img'); img.alt = cleanDesc; img.crossOrigin = 'anonymous'
         var hasRetried = false
@@ -754,7 +754,7 @@
         img.onerror = function() {
           if (!hasRetried) {
             hasRetried = true
-            var fallbackUrl = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(cleanDesc.substring(0, 100)) + '?width=512&height=512&seed=' + seed
+            var fallbackUrl = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(cleanDesc.substring(0, 100)) + '?width=768&height=768&seed=' + seed + '&private=true'
             img.src = fallbackUrl
           } else {
             loader.innerHTML = '⚠️ Erreur de génération — réessaie'
