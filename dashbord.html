@@ -357,20 +357,34 @@
 
   <script>
     /* ═══════ CONFIG VOIX ═══════ */
-    var NYXIA_VOICE_PRIORITY = ['Microsoft Denise','Microsoft Hortense','Google français','Amélie','Audrey','Virginie','Sophie','Marie','Alice'];
+    // NyXia garde exactement sa voix d'origine — inchangée, cohérente avec tous les autres portails.
+    var VOICE_PRIORITY = {
+      nyxia:  ['Microsoft Denise','Microsoft Hortense','Google français','Amélie','Audrey','Virginie','Sophie','Marie','Alice'],
+      selena: ['Audrey','Virginie','Microsoft Hortense','Sophie','Marie','Alice','Amélie','Microsoft Denise','Google français'],
+      lena:   ['Marie','Alice','Sophie','Amélie','Audrey','Virginie','Microsoft Hortense','Microsoft Denise','Google français'],
+      kael:   ['Microsoft Paul','Thomas','Nicolas','Daniel','Bruno','Guillaume','Microsoft Henri'],
+      eric:   ['Nicolas','Bruno','Guillaume','Microsoft Paul','Daniel','Thomas','Microsoft Henri']
+    }
+    var AGENT_VOICE_GENDER = { nyxia: 'feminine', selena: 'feminine', lena: 'feminine', kael: 'masculine', eric: 'masculine' }
     var _cachedVoices = null;
-    function pickBestFrenchVoice(voices) {
-      if (!voices || !voices.length) voices = window.speechSynthesis.getVoices();
-      if (!voices || !voices.length) return _cachedVoices;
-      for (var i = 0; i < NYXIA_VOICE_PRIORITY.length; i++) {
-        var found = voices.find(function(v) { return v.name.indexOf(NYXIA_VOICE_PRIORITY[i]) !== -1 && v.lang.indexOf('fr') === 0 })
-        if (found) { _cachedVoices = found; console.log('🔊 Voix NyXia:', found.name); return found; }
+    function pickBestFrenchVoice(voices, agentKey) {
+      if (!voices || !voices.length) voices = window.speechSynthesis.getVoices()
+      if (!voices || !voices.length) return _cachedVoices
+      var ownList = VOICE_PRIORITY[agentKey] || VOICE_PRIORITY.nyxia
+      for (var i = 0; i < ownList.length; i++) {
+        var found = voices.find(function(v) { return v.name.indexOf(ownList[i]) !== -1 && v.lang.indexOf('fr') === 0 })
+        if (found) { _cachedVoices = found; console.log('🔊 Voix (' + agentKey + '):', found.name); return found }
       }
-      var feminine = voices.find(function(v) { return v.lang === 'fr-FR' && /female|femme|amelie|audrey|marie|virginie|sophie|alice|denise|helene|isabelle|celine|julie|leila/i.test(v.name) })
-      if (feminine) { _cachedVoices = feminine; console.log('🔊 Voix fallback:', feminine.name); return feminine; }
-      var any = voices.find(function(v) { return v.lang === 'fr-FR' }) || voices.find(function(v) { return v.lang && v.lang.indexOf('fr') === 0 }) || null;
-      if (any) { _cachedVoices = any; console.log('🔊 Voix générique:', any.name); }
-      return any;
+      // Repli sur l'autre genre si aucune voix propre à ce personnage n'existe sur cet appareil
+      var gender = AGENT_VOICE_GENDER[agentKey] || 'feminine'
+      var fallbackList = gender === 'masculine' ? VOICE_PRIORITY.nyxia : VOICE_PRIORITY.kael
+      for (var j = 0; j < fallbackList.length; j++) {
+        var found2 = voices.find(function(v) { return v.name.indexOf(fallbackList[j]) !== -1 && v.lang.indexOf('fr') === 0 })
+        if (found2) { _cachedVoices = found2; console.log('🔊 Voix repli (' + agentKey + '):', found2.name); return found2 }
+      }
+      var any = voices.find(function(v) { return v.lang === 'fr-FR' }) || voices.find(function(v) { return v.lang && v.lang.indexOf('fr') === 0 }) || null
+      if (any) { _cachedVoices = any; console.log('🔊 Voix générique:', any.name) }
+      return any
     }
 
     /* ═══════ AUTH ═══════ */
@@ -829,20 +843,45 @@
     function removeTyping() { var t = document.getElementById('typing-indicator'); if (t) t.remove() }
 
     /* ═══════ TTS ═══════ */
+    function stopSpeakBtn(btn) {
+      btn._nxSpeaking = false; btn.textContent = '🔊 Écouter'; btn.style.borderColor = 'rgba(123,92,255,0.15)'; btn.style.color = 'var(--t4)'; btn.style.background = 'rgba(123,92,255,0.04)'
+      if (btn._nxAudio) { btn._nxAudio.pause(); btn._nxAudio = null }
+    }
+
     function speakMsg(btn, text) {
+      if (btn._nxSpeaking) { window.speechSynthesis && window.speechSynthesis.cancel(); stopSpeakBtn(btn); return }
+      window.speechSynthesis && window.speechSynthesis.cancel()
+      document.querySelectorAll('.msg button').forEach(function(b) { if (b._nxSpeaking) stopSpeakBtn(b) })
+
+      if (_currentAgent === 'nyxia') { speakViaHeyGen(btn, text); return }
+
       if (!window.speechSynthesis) return
-      if (btn._nxSpeaking) {
-        window.speechSynthesis.cancel(); btn._nxSpeaking = false; btn.textContent = '🔊 Écouter'; btn.style.borderColor = 'rgba(123,92,255,0.15)'; btn.style.color = 'var(--t4)'; btn.style.background = 'rgba(123,92,255,0.04)'; return
-      }
-      window.speechSynthesis.cancel()
-      document.querySelectorAll('.msg button').forEach(function(b) { if (b._nxSpeaking) { b._nxSpeaking = false; b.textContent = '🔊 Écouter'; b.style.borderColor = 'rgba(123,92,255,0.15)'; b.style.color = 'var(--t4)'; b.style.background = 'rgba(123,92,255,0.04)' } })
       var clean = cleanForSpeech(text)
       if (!clean) return
       btn._nxSpeaking = true; btn.textContent = '⏹ Arrêter'; btn.style.borderColor = 'rgba(0,230,118,0.4)'; btn.style.color = '#00E676'; btn.style.background = 'rgba(0,230,118,0.08)'
       var utt = new SpeechSynthesisUtterance(clean); utt.lang = 'fr-FR'; utt.rate = 0.92; utt.pitch = 1.1; utt.volume = 1
-      function doSpeak() { var voice = pickBestFrenchVoice(window.speechSynthesis.getVoices()); if (voice) utt.voice = voice; window.speechSynthesis.speak(utt) }
-      utt.onend = utt.onerror = function() { btn._nxSpeaking = false; btn.textContent = '🔊 Écouter'; btn.style.borderColor = 'rgba(123,92,255,0.15)'; btn.style.color = 'var(--t4)'; btn.style.background = 'rgba(123,92,255,0.04)' }
+      function doSpeak() { var voice = pickBestFrenchVoice(window.speechSynthesis.getVoices(), _currentAgent); if (voice) utt.voice = voice; window.speechSynthesis.speak(utt) }
+      utt.onend = utt.onerror = function() { stopSpeakBtn(btn) }
       setTimeout(doSpeak, 200)
+    }
+
+    // Voix réelle de NyXia via HeyGen — coûte un crédit par génération, réservé à elle seule.
+    function speakViaHeyGen(btn, text) {
+      var clean = cleanForSpeech(text)
+      if (!clean) return
+      btn._nxSpeaking = true; btn.textContent = '⏳ Un instant...'; btn.style.borderColor = 'rgba(0,230,118,0.4)'; btn.style.color = '#00E676'; btn.style.background = 'rgba(0,230,118,0.08)'
+
+      fetch('/api/tts/nyxia', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: sessionToken, text: clean }) })
+      .then(function(r) { return r.json() })
+      .then(function(data) {
+        if (!data.success || !data.proxyUrl) throw new Error(data.error || 'Erreur audio')
+        var audio = new Audio(data.proxyUrl)
+        btn._nxAudio = audio
+        btn.textContent = '⏹ Arrêter'
+        audio.play()
+        audio.onended = audio.onerror = function() { stopSpeakBtn(btn) }
+      })
+      .catch(function() { stopSpeakBtn(btn) })
     }
 
     var _msgDiane = null;
@@ -865,7 +904,7 @@
       var clean = cleanForSpeech(text)
       if (!clean) return
       var utt = new SpeechSynthesisUtterance(clean); utt.lang = 'fr-FR'; utt.rate = 0.92; utt.pitch = 1.1; utt.volume = 1
-      function trySpeak() { var voice = pickBestFrenchVoice(window.speechSynthesis.getVoices()); if (voice) utt.voice = voice; window.speechSynthesis.speak(utt) }
+      function trySpeak() { var voice = pickBestFrenchVoice(window.speechSynthesis.getVoices(), _currentAgent); if (voice) utt.voice = voice; window.speechSynthesis.speak(utt) }
       utt.onend = function() { var btn = document.getElementById('btn-speak'); if (btn) { btn.textContent = '🔊 Écouter NyXia'; btn.classList.remove('speaking') } isSpeaking = false }
       utt.onerror = function() { isSpeaking = false }
       setTimeout(trySpeak, 200)
@@ -874,9 +913,9 @@
     if (window.speechSynthesis) {
       window.speechSynthesis.onvoiceschanged = function() {
         var voices = window.speechSynthesis.getVoices()
-        pickBestFrenchVoice(voices)
+        pickBestFrenchVoice(voices, 'nyxia')
       }
-      pickBestFrenchVoice(window.speechSynthesis.getVoices())
+      pickBestFrenchVoice(window.speechSynthesis.getVoices(), 'nyxia')
     }
 
     /* ═══════ FILE UPLOAD ═══════ */
