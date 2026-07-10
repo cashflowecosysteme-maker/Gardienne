@@ -853,35 +853,36 @@
       window.speechSynthesis && window.speechSynthesis.cancel()
       document.querySelectorAll('.msg button').forEach(function(b) { if (b._nxSpeaking) stopSpeakBtn(b) })
 
-      if (_currentAgent === 'nyxia') { speakViaHeyGen(btn, text); return }
-
-      if (!window.speechSynthesis) return
-      var clean = cleanForSpeech(text)
-      if (!clean) return
-      btn._nxSpeaking = true; btn.textContent = '⏹ Arrêter'; btn.style.borderColor = 'rgba(0,230,118,0.4)'; btn.style.color = '#00E676'; btn.style.background = 'rgba(0,230,118,0.08)'
-      var utt = new SpeechSynthesisUtterance(clean); utt.lang = 'fr-FR'; utt.rate = 0.92; utt.pitch = 1.1; utt.volume = 1
-      function doSpeak() { var voice = pickBestFrenchVoice(window.speechSynthesis.getVoices(), _currentAgent); if (voice) utt.voice = voice; window.speechSynthesis.speak(utt) }
-      utt.onend = utt.onerror = function() { stopSpeakBtn(btn) }
-      setTimeout(doSpeak, 200)
+      speakViaHeyGen(btn, text, _currentAgent)
     }
 
-    // Voix réelle de NyXia via HeyGen — coûte un crédit par génération, réservé à elle seule.
-    function speakViaHeyGen(btn, text) {
+    // Essaie la voix HeyGen du personnage actif ; si aucune n'est configurée pour lui,
+    // retombe automatiquement sur la synthèse vocale gratuite du navigateur.
+    function speakViaHeyGen(btn, text, agentKey) {
       var clean = cleanForSpeech(text)
       if (!clean) return
       btn._nxSpeaking = true; btn.textContent = '⏳ Un instant...'; btn.style.borderColor = 'rgba(0,230,118,0.4)'; btn.style.color = '#00E676'; btn.style.background = 'rgba(0,230,118,0.08)'
 
-      fetch('/api/tts/nyxia', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: sessionToken, text: clean }) })
+      fetch('/api/tts/nyxia', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: sessionToken, text: clean, agent: agentKey }) })
       .then(function(r) { return r.json() })
       .then(function(data) {
-        if (!data.success || !data.proxyUrl) throw new Error(data.error || 'Erreur audio')
+        if (!data.success || !data.proxyUrl) throw new Error(data.error || 'Pas de voix HeyGen pour cet agent')
         var audio = new Audio(data.proxyUrl)
         btn._nxAudio = audio
         btn.textContent = '⏹ Arrêter'
         audio.play()
         audio.onended = audio.onerror = function() { stopSpeakBtn(btn) }
       })
-      .catch(function() { stopSpeakBtn(btn) })
+      .catch(function(err) { console.error('🔊 Voix HeyGen (' + agentKey + ') :', err.message); speakViaBrowser(btn, clean, agentKey) })
+    }
+
+    function speakViaBrowser(btn, clean, agentKey) {
+      if (!window.speechSynthesis) { stopSpeakBtn(btn); return }
+      btn.textContent = '⏹ Arrêter'
+      var utt = new SpeechSynthesisUtterance(clean); utt.lang = 'fr-FR'; utt.rate = 0.92; utt.pitch = 1.1; utt.volume = 1
+      function doSpeak() { var voice = pickBestFrenchVoice(window.speechSynthesis.getVoices(), agentKey); if (voice) utt.voice = voice; window.speechSynthesis.speak(utt) }
+      utt.onend = utt.onerror = function() { stopSpeakBtn(btn) }
+      setTimeout(doSpeak, 200)
     }
 
     var _msgDiane = null;
