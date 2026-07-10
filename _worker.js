@@ -759,10 +759,11 @@ async function handleTTSNyxia(request, env) {
       return json({ success: true, proxyUrl: mediaProxyUrl(cachedUrl, token), cached: true });
     }
 
+    const bodyBytes = new TextEncoder().encode(JSON.stringify({ text: cleanText, voice_id: heygenVoiceId }));
     const resp = await fetch('https://api.heygen.com/v3/voices/speech', {
       method: 'POST',
       headers: { 'X-Api-Key': env.HeyGen_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: cleanText, voice_id: heygenVoiceId })
+      body: bodyBytes
     });
 
     if (!resp.ok) {
@@ -792,10 +793,11 @@ async function handleTTSNyxia(request, env) {
       });
     }
 
+    const openaiBodyBytes = new TextEncoder().encode(JSON.stringify({ model: 'tts-1', voice: openaiVoice, input: cleanText, response_format: 'mp3' }));
     const resp = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + env['OpenAi_KEY'], 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'tts-1', voice: openaiVoice, input: cleanText, response_format: 'mp3' })
+      body: openaiBodyBytes
     });
 
     if (!resp.ok) {
