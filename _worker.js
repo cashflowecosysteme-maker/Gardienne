@@ -157,6 +157,10 @@ export default {
       if (path === '/api/messages/send' && request.method === 'POST') return await handleSendMessage(request, env);
       if (path === '/api/messages/read' && request.method === 'POST') return await handleMarkMessageRead(request, env);
       if (path === '/api/admin/messages/send' && request.method === 'POST') return await handleAdminSendMessage(request, env);
+
+      // ── Répertoire des Médias Magiques ──
+      if (path === '/api/media/images' && request.method === 'POST') return await handleMediaImages(request, env);
+      if (path === '/api/media/sounds' && request.method === 'POST') return await handleMediaSounds(request, env);
     } catch (e) {
       return json({ error: 'Erreur serveur inattendue : ' + e.message }, 500);
     }
@@ -499,5 +503,87 @@ async function handleAdminSendMessage(request, env) {
   };
   await env.GARDIENNE_KV.put(`message:${to}:${createdAt}_${id}`, JSON.stringify(message));
   return json({ success: true, sentTo: 1 });
+}
+
+// ───────────── RÉPERTOIRE DES MÉDIAS MAGIQUES ─────────────
+// Agrège Pexels + Unsplash (images/vidéos) et Freesound (sons) sous une
+// bannière unique "NyXia" — les sources ne sont jamais exposées à la Gardienne.
+
+async function handleMediaImages(request, env) {
+  const { token, query } = await request.json();
+  const session = await getSessionOrNull(token, env);
+  if (!session) return json({ error: 'Session expirée.' }, 401);
+  if (!query) return json({ error: 'Recherche requise.' }, 400);
+
+  const results = [];
+
+  // Source 1 — photos
+  try {
+    const r = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=12`, {
+      headers: { Authorization: env.PEXELS_KEY }
+    });
+    if (r.ok) {
+      const data = await r.json();
+      (data.photos || []).forEach(p => {
+        results.push({ id: 'a_' + p.id, type: 'image', url: p.src.large, thumbnailUrl: p.src.medium, credit: 'NyXia' });
+      });
+    }
+  } catch (e) {}
+
+  // Source 1 — vidéos
+  try {
+    const r = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=8`, {
+      headers: { Authorization: env.PEXELS_KEY }
+    });
+    if (r.ok) {
+      const data = await r.json();
+      (data.videos || []).forEach(v => {
+        const file = (v.video_files || []).find(f => f.quality === 'sd') || (v.video_files || [])[0];
+        if (file) results.push({ id: 'b_' + v.id, type: 'video', url: file.link, thumbnailUrl: v.image, credit: 'NyXia' });
+      });
+    }
+  } catch (e) {}
+
+  // Source 2 — photos
+  try {
+    const r = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=12`, {
+      headers: { Authorization: `Client-ID ${env.UNSPLASH_KEY}` }
+    });
+    if (r.ok) {
+      const data = await r.json();
+      (data.results || []).forEach(p => {
+        results.push({ id: 'c_' + p.id, type: 'image', url: p.urls.regular, thumbnailUrl: p.urls.small, credit: 'NyXia' });
+      });
+    }
+  } catch (e) {}
+
+  // Mélange pour que ce soit une seule banque homogène, jamais groupée par source
+  for (let i = results.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [results[i], results[j]] = [results[j], results[i]];
+  }
+
+  return json({ success: true, results });
+}
+
+async function handleMediaSounds(request, env) {
+  const { token, query } = await request.json();
+  const session = await getSessionOrNull(token, env);
+  if (!session) return json({ error: 'Session expirée.' }, 401);
+  if (!query) return json({ error: 'Recherche requise.' }, 400);
+
+  const results = [];
+  try {
+    const r = await fetch(`https://freesound.org/apiv2/search/text/?query=${encodeURIComponent(query)}&token=${env.FREESOUND_API_KEY}&fields=id,name,previews,duration&page_size=15`);
+    if (r.ok) {
+      const data = await r.json();
+      (data.results || []).forEach(s => {
+        const preview = s.previews ? (s.previews['preview-hq-mp3'] || s.previews['preview-lq-mp3']) : null;
+        if (preview) results.push({ id: 'd_' + s.id, name: s.name, previewUrl: preview, duration: Math.round(s.duration), credit: 'NyXia' });
+      });
+    }
+  } catch (e) {}
+
+  return json({ success: true, results });
 }
 
