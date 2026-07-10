@@ -259,10 +259,12 @@
         </div>
       </div>
 
-      <!-- Panel Mon Espace Gardienne — iframe -->
-      <div class="panel" id="panel-miroir" style="flex-direction:column">
-        <div style="flex:1;overflow:hidden;position:relative">
-          <iframe src="/cerclegardienne.html" style="width:100%;height:100%;border:none;display:block" title="Mon Espace Gardienne"></iframe>
+      <!-- Panel Mon Espace Gardienne -->
+      <div class="panel" id="panel-miroir" style="flex-direction:column;padding:24px;overflow-y:auto">
+        <div style="max-width:700px;margin:0 auto;width:100%;text-align:center;padding-top:60px">
+          <div style="font-size:48px;margin-bottom:16px">🪞</div>
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:22px;margin-bottom:8px">Mon Espace Gardienne</h2>
+          <p style="color:var(--t3);font-size:13px;line-height:1.7">Bientôt ici : le Grimoire des Liens — tes deux alliées du Cercle, leurs jauges d'énergie, et tes notes de cœur en temps réel. En construction. ✦</p>
         </div>
       </div>
 
@@ -691,14 +693,6 @@
     function openAgentTab(key) {
       showPanel('chat')
 
-      if (key === _currentAgent) {
-        // Déjà sur cet agent — juste remettre la bonne surbrillance dans la nav
-        document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active') })
-        var currentNavEl = document.getElementById(key === 'nyxia' ? 'nav-chat' : 'nav-' + key)
-        if (currentNavEl) currentNavEl.classList.add('active')
-        return
-      }
-
       if (key === 'nyxia') {
         _currentAgent = 'nyxia'
         document.getElementById('chat-header-name').textContent = 'NyXia'
@@ -707,6 +701,8 @@
         document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active') })
         var nyxiaNavEl = document.getElementById('nav-chat')
         if (nyxiaNavEl) nyxiaNavEl.classList.add('active')
+        var msgs = document.getElementById('chat-messages')
+        if (msgs) msgs.scrollTop = msgs.scrollHeight
       } else {
         chooseAlpha(key)
       }
