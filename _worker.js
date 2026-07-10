@@ -191,8 +191,9 @@ export default {
       if (path === '/api/media/sounds' && request.method === 'POST') return await handleMediaSounds(request, env);
       if (path === '/api/media/file' && request.method === 'GET') return await handleMediaFile(request, env, url);
 
-      // ── Voix HeyGen (NyXia uniquement) ──
+      // ── Voix HeyGen (NyXia) / OpenAI (les autres) ──
       if (path === '/api/tts/nyxia' && request.method === 'POST') return await handleTTSNyxia(request, env);
+      if (path === '/api/tts/cached-audio' && request.method === 'GET') return await handleTTSCachedAudio(request, env, url);
     } catch (e) {
       return json({ error: 'Erreur serveur inattendue : ' + e.message }, 500);
     }
@@ -711,11 +712,10 @@ async function handleMediaFile(request, env, url) {
   return new Response(upstream.body, { status: 200, headers });
 }
 
-// ───────────── VOIX HEYGEN — tous les personnages ─────────────
-// Chaque personnage peut avoir sa propre voix clonée/designée sur HeyGen, cohérente
-// sur tous les portails. Si aucun voice_id n'est configuré pour un agent, le Worker
-// répond simplement "pas de voix HeyGen" — le frontend retombe alors sur la voix
-// gratuite du navigateur pour ce personnage précis.
+// ───────────── VOIX — HeyGen pour NyXia, OpenAI pour les autres ─────────────
+// NyXia garde sa vraie voix clonée sur HeyGen. Séléna/Kael/Léna/Éric utilisent
+// chacun une voix distincte d'OpenAI (moins cher, clé déjà existante), sans
+// clonage — juste une identité sonore propre à chacun.
 
 const AGENT_VOICE_ID_KEYS = {
   nyxia:  'HEYGEN_NYXIA_VOICE_ID',
@@ -725,39 +725,105 @@ const AGENT_VOICE_ID_KEYS = {
   eric:   'HEYGEN_ERIC_VOICE_ID'
 };
 
+const OPENAI_VOICE_MAP = {
+  selena: 'shimmer', // douce, féminine
+  kael:   'onyx',    // grave, masculine, intense
+  lena:   'nova',    // féminine, éthérée
+  eric:   'echo'     // masculine, chaleureuse
+};
+
+async function sha256Hex(str) {
+  const enc = new TextEncoder();
+  const buf = await crypto.subtle.digest('SHA-256', enc.encode(str));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 async function handleTTSNyxia(request, env) {
   const { token, text, agent } = await request.json();
   const session = await getSessionOrNull(token, env);
   if (!session) return json({ error: 'Session expirée.' }, 401);
   if (!text) return json({ error: 'Texte requis.' }, 400);
 
-  const voiceIdKey = AGENT_VOICE_ID_KEYS[agent] || AGENT_VOICE_ID_KEYS.nyxia;
-  const voiceId = env[voiceIdKey];
-  if (!voiceId) return json({ error: 'Aucune voix HeyGen configurée pour cet agent.' }, 404);
+  const cleanText = text.slice(0, 4500);
+  const voiceIdKey = AGENT_VOICE_ID_KEYS[agent];
+  const heygenVoiceId = voiceIdKey ? env[voiceIdKey] : null;
 
-  const cleanText = text.slice(0, 4900); // marge sous la limite de 5000 caractères de HeyGen
+  // ── Voie 1 : HeyGen (voix clonée réelle — normalement NyXia seulement) ──
+  if (heygenVoiceId) {
+    const cacheKey = 'tts_cache:' + agent + ':' + (await sha256Hex(cleanText));
+    const cachedUrl = await env.GARDIENNE_KV.get(cacheKey);
+    if (cachedUrl) {
+      return json({ success: true, proxyUrl: mediaProxyUrl(cachedUrl, token), cached: true });
+    }
 
-  const resp = await fetch('https://api.heygen.com/v3/voices/speech', {
-    method: 'POST',
-    headers: {
-      'X-Api-Key': env.HEYGEN_API_KEY,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ text: cleanText, voice_id: voiceId })
-  });
+    const resp = await fetch('https://api.heygen.com/v3/voices/speech', {
+      method: 'POST',
+      headers: { 'X-Api-Key': env.HeyGen_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: cleanText, voice_id: heygenVoiceId })
+    });
 
-  if (!resp.ok) {
-    const errText = await resp.text();
-    return json({ error: 'Erreur HeyGen (' + resp.status + ') : ' + errText.slice(0, 300) }, 502);
+    if (!resp.ok) {
+      const errText = await resp.text();
+      return json({ error: 'Erreur HeyGen (' + resp.status + ') : ' + errText.slice(0, 300) }, 502);
+    }
+    const data = await resp.json();
+    if (data.error) return json({ error: 'HeyGen : ' + data.error }, 502);
+
+    const audioUrl = data.data && data.data.audio_url;
+    if (!audioUrl) return json({ error: 'Aucun audio généré.' }, 502);
+
+    await env.GARDIENNE_KV.put(cacheKey, audioUrl, { expirationTtl: 60 * 60 * 24 * 30 });
+    return json({ success: true, proxyUrl: mediaProxyUrl(audioUrl, token) });
   }
-  const data = await resp.json();
-  if (data.error) return json({ error: 'HeyGen : ' + data.error }, 502);
 
-  const audioUrl = data.data && data.data.audio_url;
-  if (!audioUrl) return json({ error: 'Aucun audio généré.' }, 502);
+  // ── Voie 2 : OpenAI (voix distinctes, moins chères, sans clonage) ──
+  const openaiVoice = OPENAI_VOICE_MAP[agent];
+  if (openaiVoice) {
+    const cacheKey = 'tts_cache_openai:' + agent + ':' + (await sha256Hex(cleanText));
+    const cachedBuf = await env.GARDIENNE_KV.get(cacheKey, 'arrayBuffer');
+    if (cachedBuf) {
+      return json({
+        success: true,
+        proxyUrl: '/api/tts/cached-audio?key=' + encodeURIComponent(cacheKey) + '&token=' + encodeURIComponent(token),
+        cached: true
+      });
+    }
 
-  // Le fichier audio passe par notre propre proxy — jamais le domaine HeyGen exposé au navigateur.
-  return json({ success: true, proxyUrl: mediaProxyUrl(audioUrl, token) });
+    const resp = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + env['OpenAi_KEY'], 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'tts-1', voice: openaiVoice, input: cleanText, response_format: 'mp3' })
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      return json({ error: 'Erreur OpenAI (' + resp.status + ') : ' + errText.slice(0, 300) }, 502);
+    }
+
+    const audioBuf = await resp.arrayBuffer();
+    await env.GARDIENNE_KV.put(cacheKey, audioBuf, { expirationTtl: 60 * 60 * 24 * 30 });
+
+    return json({
+      success: true,
+      proxyUrl: '/api/tts/cached-audio?key=' + encodeURIComponent(cacheKey) + '&token=' + encodeURIComponent(token)
+    });
+  }
+
+  return json({ error: 'Aucune voix configurée pour cet agent.' }, 404);
 }
 
+// Sert un audio déjà généré et mis en cache (OpenAI) — jamais le domaine OpenAI exposé.
+async function handleTTSCachedAudio(request, env, url) {
+  const token = url.searchParams.get('token');
+  const session = await getSessionOrNull(token, env);
+  if (!session) return new Response('Non autorisé', { status: 401 });
+
+  const key = url.searchParams.get('key');
+  if (!key || !key.startsWith('tts_cache_openai:')) return new Response('Requête invalide', { status: 400 });
+
+  const audio = await env.GARDIENNE_KV.get(key, 'arrayBuffer');
+  if (!audio) return new Response('Audio introuvable', { status: 404 });
+
+  return new Response(audio, { status: 200, headers: { 'Content-Type': 'audio/mpeg' } });
+}
 
