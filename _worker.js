@@ -190,6 +190,9 @@ export default {
       if (path === '/api/media/images' && request.method === 'POST') return await handleMediaImages(request, env);
       if (path === '/api/media/sounds' && request.method === 'POST') return await handleMediaSounds(request, env);
       if (path === '/api/media/file' && request.method === 'GET') return await handleMediaFile(request, env, url);
+
+      // ── Voix HeyGen (NyXia uniquement) ──
+      if (path === '/api/tts/nyxia' && request.method === 'POST') return await handleTTSNyxia(request, env);
     } catch (e) {
       return json({ error: 'Erreur serveur inattendue : ' + e.message }, 500);
     }
@@ -552,7 +555,8 @@ async function handleAdminSendMessage(request, env) {
 const MEDIA_ALLOWED_HOSTS = [
   'images.pexels.com', 'videos.pexels.com',
   'images.unsplash.com',
-  'cdn.freesound.org', 'freesound.org'
+  'cdn.freesound.org', 'freesound.org',
+  'heygen.ai'
 ];
 
 function mediaProxyUrl(rawUrl, token, opts) {
@@ -706,4 +710,38 @@ async function handleMediaFile(request, env, url) {
 
   return new Response(upstream.body, { status: 200, headers });
 }
+
+// ───────────── VOIX HEYGEN — NyXia uniquement ─────────────
+// Génère la vraie voix clonée de NyXia via HeyGen, cohérente sur tous ses portails.
+// Les autres personnages (Séléna, Kael, Léna, Éric) restent sur la synthèse vocale
+// gratuite du navigateur — décision volontaire pour garder les coûts de ce portail minimes.
+
+async function handleTTSNyxia(request, env) {
+  const { token, text } = await request.json();
+  const session = await getSessionOrNull(token, env);
+  if (!session) return json({ error: 'Session expirée.' }, 401);
+  if (!text) return json({ error: 'Texte requis.' }, 400);
+
+  const cleanText = text.slice(0, 4900); // marge sous la limite de 5000 caractères de HeyGen
+
+  const resp = await fetch('https://api.heygen.com/v3/voices/speech', {
+    method: 'POST',
+    headers: {
+      'X-Api-Key': env.HEYGEN_API_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ text: cleanText, voice_id: env.HEYGEN_NYXIA_VOICE_ID })
+  });
+
+  if (!resp.ok) return json({ error: 'Erreur HeyGen.' }, 502);
+  const data = await resp.json();
+  if (data.error) return json({ error: data.error }, 502);
+
+  const audioUrl = data.data && data.data.audio_url;
+  if (!audioUrl) return json({ error: 'Aucun audio généré.' }, 502);
+
+  // Le fichier audio passe par notre propre proxy — jamais le domaine HeyGen exposé au navigateur.
+  return json({ success: true, proxyUrl: mediaProxyUrl(audioUrl, token) });
+}
+
 
