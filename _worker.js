@@ -150,6 +150,13 @@ export default {
       if (path === '/api/admin/clients/update' && request.method === 'POST') return await handleAdminUpdateClient(request, env);
       if (path === '/api/admin/clients/delete' && request.method === 'POST') return await handleAdminDeleteClient(request, env);
       if (path === '/api/admin/change-password' && request.method === 'POST') return await handleAdminChangePassword(request, env);
+
+      // ── Messagerie interne ──
+      if (path === '/api/gardiennes/list' && request.method === 'POST') return await handleListGardiennes(request, env);
+      if (path === '/api/messages' && request.method === 'POST') return await handleListMessages(request, env);
+      if (path === '/api/messages/send' && request.method === 'POST') return await handleSendMessage(request, env);
+      if (path === '/api/messages/read' && request.method === 'POST') return await handleMarkMessageRead(request, env);
+      if (path === '/api/admin/messages/send' && request.method === 'POST') return await handleAdminSendMessage(request, env);
     } catch (e) {
       return json({ error: 'Erreur serveur inattendue : ' + e.message }, 500);
     }
@@ -362,3 +369,135 @@ async function handleAdminChangePassword(request, env) {
   await env.GARDIENNE_KV.put('admin:credentials', JSON.stringify({ salt, hash }));
   return json({ success: true });
 }
+
+// ───────────── MESSAGERIE INTERNE ─────────────
+
+async function getSessionOrNull(token, env) {
+  if (!token) return null;
+  const raw = await env.GARDIENNE_KV.get(`session:${token}`);
+  if (!raw) return null;
+  return JSON.parse(raw);
+}
+
+// Liste des Gardiennes disponibles comme destinataires (toutes sauf soi-même)
+async function handleListGardiennes(request, env) {
+  const { token } = await request.json();
+  const session = await getSessionOrNull(token, env);
+  if (!session) return json({ error: 'Session expirée.' }, 401);
+
+  const list = await env.GARDIENNE_KV.list({ prefix: 'client:' });
+  const gardiennes = [];
+  for (const key of list.keys) {
+    const raw = await env.GARDIENNE_KV.get(key.name);
+    if (!raw) continue;
+    const c = JSON.parse(raw);
+    if (c.email === session.email) continue;
+    gardiennes.push({ email: c.email, firstName: c.firstName || c.name || c.email });
+  }
+  return json({ success: true, gardiennes });
+}
+
+// Boîte de réception de la Gardienne connectée
+async function handleListMessages(request, env) {
+  const { token } = await request.json();
+  const session = await getSessionOrNull(token, env);
+  if (!session) return json({ error: 'Session expirée.' }, 401);
+
+  const list = await env.GARDIENNE_KV.list({ prefix: `message:${session.email}:` });
+  const messages = [];
+  let unreadCount = 0;
+  for (const key of list.keys) {
+    const raw = await env.GARDIENNE_KV.get(key.name);
+    if (!raw) continue;
+    const m = JSON.parse(raw);
+    m.key = key.name;
+    if (!m.read) unreadCount++;
+    messages.push(m);
+  }
+  messages.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  return json({ success: true, messages, unreadCount });
+}
+
+// Une Gardienne envoie un message à une autre (ex: relance d'une alliée du Cercle)
+async function handleSendMessage(request, env) {
+  const { token, toEmail, subject, body } = await request.json();
+  const session = await getSessionOrNull(token, env);
+  if (!session) return json({ error: 'Session expirée.' }, 401);
+  if (!toEmail || !body) return json({ error: 'Destinataire et message requis.' }, 400);
+
+  const to = toEmail.toLowerCase().trim();
+  const recipientRaw = await env.GARDIENNE_KV.get(`client:${to}`);
+  if (!recipientRaw) return json({ error: 'Destinataire introuvable.' }, 404);
+
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+  const message = {
+    id, from: session.email, fromName: session.firstname || 'Une Gardienne',
+    to, subject: subject || 'Message du Cercle', body,
+    createdAt, read: false, kind: 'client'
+  };
+  await env.GARDIENNE_KV.put(`message:${to}:${createdAt}_${id}`, JSON.stringify(message));
+  return json({ success: true });
+}
+
+// Marquer un message comme lu — le client renvoie la clé exacte reçue dans la liste
+async function handleMarkMessageRead(request, env) {
+  const { token, key } = await request.json();
+  const session = await getSessionOrNull(token, env);
+  if (!session) return json({ error: 'Session expirée.' }, 401);
+  if (!key || !key.startsWith(`message:${session.email}:`)) {
+    return json({ error: 'Clé de message invalide.' }, 400);
+  }
+
+  const raw = await env.GARDIENNE_KV.get(key);
+  if (!raw) return json({ error: 'Message introuvable.' }, 404);
+  const message = JSON.parse(raw);
+  message.read = true;
+  await env.GARDIENNE_KV.put(key, JSON.stringify(message));
+  return json({ success: true });
+}
+
+// Admin → une Gardienne précise OU diffusion à toutes
+async function handleAdminSendMessage(request, env) {
+  if (!await requireAdmin(request, env)) return json({ error: 'Non autorisé.' }, 401);
+  const { toEmail, broadcast, subject, body, fromName } = await request.json();
+  if (!body) return json({ error: 'Message requis.' }, 400);
+
+  const senderName = fromName || 'Diane — Portail Gardienne';
+
+  if (broadcast) {
+    const list = await env.GARDIENNE_KV.list({ prefix: 'client:' });
+    let count = 0;
+    for (const key of list.keys) {
+      const raw = await env.GARDIENNE_KV.get(key.name);
+      if (!raw) continue;
+      const c = JSON.parse(raw);
+      const id = crypto.randomUUID();
+      const createdAt = new Date().toISOString();
+      const message = {
+        id, from: 'admin', fromName: senderName,
+        to: c.email, subject: subject || 'Message du Cercle', body,
+        createdAt, read: false, kind: 'broadcast'
+      };
+      await env.GARDIENNE_KV.put(`message:${c.email}:${createdAt}_${id}`, JSON.stringify(message));
+      count++;
+    }
+    return json({ success: true, sentTo: count });
+  }
+
+  if (!toEmail) return json({ error: 'Destinataire requis (ou active la diffusion).' }, 400);
+  const to = toEmail.toLowerCase().trim();
+  const recipientRaw = await env.GARDIENNE_KV.get(`client:${to}`);
+  if (!recipientRaw) return json({ error: 'Destinataire introuvable.' }, 404);
+
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+  const message = {
+    id, from: 'admin', fromName: senderName,
+    to, subject: subject || 'Message du Cercle', body,
+    createdAt, read: false, kind: 'admin'
+  };
+  await env.GARDIENNE_KV.put(`message:${to}:${createdAt}_${id}`, JSON.stringify(message));
+  return json({ success: true, sentTo: 1 });
+}
+
