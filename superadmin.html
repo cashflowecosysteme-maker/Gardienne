@@ -113,8 +113,15 @@ th{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;lette
 td{font-size:13px;color:var(--t2)}
 tr:hover td{background:rgba(123,92,255,0.05)}
 .badge{display:inline-block;padding:4px 10px;border-radius:50px;font-size:10px;font-weight:700;text-transform:uppercase}
-.badge.pro{background:rgba(123,92,255,0.15);color:var(--p)}
-.badge.flipbook{background:linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,165,0,0.2));color:#FFD700}
+.badge.miroir_accompagnement{background:rgba(123,92,255,0.15);color:#a78bfa}
+.badge.praticienne{background:rgba(255,140,190,0.15);color:#ff8cbe}
+.badge.clone_ia{background:rgba(79,163,255,0.15);color:#4fa3ff}
+.badge.edition_ia{background:rgba(0,230,118,0.15);color:#00e676}
+.badge.spirituel{background:rgba(147,112,219,0.18);color:#c9a3ff}
+.badge.conquerir{background:rgba(255,75,110,0.15);color:#ff8fab}
+.badge.gardienne{background:rgba(180,120,255,0.18);color:#c4b5fd}
+.badge.marketplace{background:rgba(255,180,60,0.18);color:#ffb43c}
+.badge.affiliation{background:rgba(255,215,0,0.18);color:#ffd700}
 .badge.active{background:rgba(0,230,118,0.15);color:var(--green)}
 .badge.suspended{background:rgba(255,82,82,0.15);color:var(--red)}
 
@@ -287,12 +294,40 @@ tr:hover td{background:rgba(123,92,255,0.05)}
           <label>Produits *</label>
           <div class="products-checkboxes">
             <label class="checkbox-label">
-              <input type="checkbox" id="new-pro-pro" value="pro">
-              <span>🪞 NyXia — Plan Accompagnement</span>
+              <input type="checkbox" id="new-pro-miroir_accompagnement" value="miroir_accompagnement">
+              <span>🪞 Une Amie dans le Miroir (Accompagnement)</span>
             </label>
             <label class="checkbox-label">
-              <input type="checkbox" id="new-pro-flipbook" value="flipbook">
-              <span>📚 Retrouver une amie dans le Miroir</span>
+              <input type="checkbox" id="new-pro-praticienne" value="praticienne">
+              <span>🌸 Le Miroir de la Praticienne</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="new-pro-clone_ia" value="clone_ia">
+              <span>🎙️ Clone IA — NyXia</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="new-pro-edition_ia" value="edition_ia">
+              <span>✍️ Édition IA — NyXia</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="new-pro-spirituel" value="spirituel">
+              <span>🔮 Spirituel | Amour Relationnel</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="new-pro-conquerir" value="conquerir">
+              <span>💔 Amour & Relation (Conquérir / Reconquérir)</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="new-pro-gardienne" value="gardienne">
+              <span>👑 Gardienne</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="new-pro-marketplace" value="marketplace">
+              <span>🛍️ MarketPlace</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="new-pro-affiliation" value="affiliation">
+              <span>💰 Affiliation</span>
             </label>
           </div>
         </div>
@@ -366,8 +401,15 @@ tr:hover td{background:rgba(123,92,255,0.05)}
         <div class="field">
           <label>Produits</label>
           <div class="products-checkboxes">
-            <label class="checkbox-label"><input type="checkbox" id="edit-pro-pro" value="pro"><span>🪞 Plan Accompagnement</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="edit-pro-flipbook" value="flipbook"><span>📚 Retrouver une amie dans le Miroir</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="edit-pro-miroir_accompagnement" value="miroir_accompagnement"><span>🪞 Une Amie dans le Miroir (Accompagnement)</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="edit-pro-praticienne" value="praticienne"><span>🌸 Le Miroir de la Praticienne</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="edit-pro-clone_ia" value="clone_ia"><span>🎙️ Clone IA — NyXia</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="edit-pro-edition_ia" value="edition_ia"><span>✍️ Édition IA — NyXia</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="edit-pro-spirituel" value="spirituel"><span>🔮 Spirituel | Amour Relationnel</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="edit-pro-conquerir" value="conquerir"><span>💔 Amour & Relation (Conquérir / Reconquérir)</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="edit-pro-gardienne" value="gardienne"><span>👑 Gardienne</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="edit-pro-marketplace" value="marketplace"><span>🛍️ MarketPlace</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="edit-pro-affiliation" value="affiliation"><span>💰 Affiliation</span></label>
           </div>
         </div>
         <div class="field">
@@ -717,8 +759,15 @@ function renderAccounts() {
   tbody.innerHTML = clientAccounts.map(function(acc) {
     var products = acc.products || [];
     var productBadges = products.map(function(p) {
-      if (p === 'pro') return '<span class="badge pro">🪞 Plan Accompagnement</span>';
-      if (p === 'flipbook') return '<span class="badge flipbook">📚 Retrouver une amie</span>';
+      if (p === 'miroir_accompagnement') return '<span class="badge miroir_accompagnement">🪞 Miroir Accompagnement</span>';
+      if (p === 'praticienne') return '<span class="badge praticienne">🌸 Miroir Praticienne</span>';
+      if (p === 'clone_ia') return '<span class="badge clone_ia">🎙️ Clone IA</span>';
+      if (p === 'edition_ia') return '<span class="badge edition_ia">✍️ Édition IA</span>';
+      if (p === 'spirituel') return '<span class="badge spirituel">🔮 Spirituel</span>';
+      if (p === 'conquerir') return '<span class="badge conquerir">💔 Conquérir</span>';
+      if (p === 'gardienne') return '<span class="badge gardienne">👑 Gardienne</span>';
+      if (p === 'marketplace') return '<span class="badge marketplace">🛍️ MarketPlace</span>';
+      if (p === 'affiliation') return '<span class="badge affiliation">💰 Affiliation</span>';
       return '<span class="badge">' + p + '</span>';
     }).join(' ');
 
@@ -773,8 +822,15 @@ async function createAccount(e) {
   var email = document.getElementById('new-email').value.trim().toLowerCase();
   var password = document.getElementById('new-password').value;
   var products = [];
-  if (document.getElementById('new-pro-pro').checked) products.push('pro');
-  if (document.getElementById('new-pro-flipbook').checked) products.push('flipbook');
+  if (document.getElementById('new-pro-miroir_accompagnement').checked) products.push('miroir_accompagnement');
+  if (document.getElementById('new-pro-praticienne').checked) products.push('praticienne');
+  if (document.getElementById('new-pro-clone_ia').checked) products.push('clone_ia');
+  if (document.getElementById('new-pro-edition_ia').checked) products.push('edition_ia');
+  if (document.getElementById('new-pro-spirituel').checked) products.push('spirituel');
+  if (document.getElementById('new-pro-conquerir').checked) products.push('conquerir');
+  if (document.getElementById('new-pro-gardienne').checked) products.push('gardienne');
+  if (document.getElementById('new-pro-marketplace').checked) products.push('marketplace');
+  if (document.getElementById('new-pro-affiliation').checked) products.push('affiliation');
 
   if (!firstname || !lastname || !email || !password) { showError('Tous les champs sont requis'); return false; }
   if (products.length === 0) { showError('Sélectionnez au moins un produit'); return false; }
@@ -828,8 +884,15 @@ function openEdit(email) {
   document.getElementById('edit-password').value = '';
   document.getElementById('edit-status').value = acc.active !== false ? 'active' : 'suspended';
   var products = acc.products || [];
-  document.getElementById('edit-pro-pro').checked = products.includes('pro');
-  document.getElementById('edit-pro-flipbook').checked = products.includes('flipbook');
+  document.getElementById('edit-pro-miroir_accompagnement').checked = products.includes('miroir_accompagnement');
+  document.getElementById('edit-pro-praticienne').checked = products.includes('praticienne');
+  document.getElementById('edit-pro-clone_ia').checked = products.includes('clone_ia');
+  document.getElementById('edit-pro-edition_ia').checked = products.includes('edition_ia');
+  document.getElementById('edit-pro-spirituel').checked = products.includes('spirituel');
+  document.getElementById('edit-pro-conquerir').checked = products.includes('conquerir');
+  document.getElementById('edit-pro-gardienne').checked = products.includes('gardienne');
+  document.getElementById('edit-pro-marketplace').checked = products.includes('marketplace');
+  document.getElementById('edit-pro-affiliation').checked = products.includes('affiliation');
   document.getElementById('edit-modal').classList.add('visible');
 }
 
@@ -842,8 +905,15 @@ async function saveEdit(e) {
 
   var originalEmail = document.getElementById('edit-email-original').value;
   var products = [];
-  if (document.getElementById('edit-pro-pro').checked) products.push('pro');
-  if (document.getElementById('edit-pro-flipbook').checked) products.push('flipbook');
+  if (document.getElementById('edit-pro-miroir_accompagnement').checked) products.push('miroir_accompagnement');
+  if (document.getElementById('edit-pro-praticienne').checked) products.push('praticienne');
+  if (document.getElementById('edit-pro-clone_ia').checked) products.push('clone_ia');
+  if (document.getElementById('edit-pro-edition_ia').checked) products.push('edition_ia');
+  if (document.getElementById('edit-pro-spirituel').checked) products.push('spirituel');
+  if (document.getElementById('edit-pro-conquerir').checked) products.push('conquerir');
+  if (document.getElementById('edit-pro-gardienne').checked) products.push('gardienne');
+  if (document.getElementById('edit-pro-marketplace').checked) products.push('marketplace');
+  if (document.getElementById('edit-pro-affiliation').checked) products.push('affiliation');
 
   var updateData = {
     email: originalEmail,
