@@ -47,6 +47,11 @@
 
     .app-body { display: flex; flex: 1; overflow: hidden; position: relative; z-index: 1; }
     aside { width: 240px; flex-shrink: 0; background: rgba(8,15,34,0.97); border-right: 1px solid rgba(123,92,255,0.1); display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+    aside::-webkit-scrollbar { width: 6px; }
+    aside::-webkit-scrollbar-track { background: transparent; }
+    aside::-webkit-scrollbar-thumb { background: rgba(123,92,255,0.25); border-radius: 10px; }
+    aside::-webkit-scrollbar-thumb:hover { background: rgba(123,92,255,0.45); }
+    aside { scrollbar-width: thin; scrollbar-color: rgba(123,92,255,0.25) transparent; }
     .sidebar-section { padding: 20px 12px 8px; }
     .sidebar-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: var(--t4); text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; }
     .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; color: var(--t3); font-size: 14px; font-weight: 500; border: 1px solid transparent; margin-bottom: 2px; text-decoration: none; user-select: none; }
@@ -78,6 +83,11 @@
     @keyframes speakPulse { 0%,100% { opacity:1; } 50% { opacity:.6; } }
 
     .chat-messages { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
+    .chat-messages::-webkit-scrollbar, .panel::-webkit-scrollbar { width: 6px; }
+    .chat-messages::-webkit-scrollbar-track, .panel::-webkit-scrollbar-track { background: transparent; }
+    .chat-messages::-webkit-scrollbar-thumb, .panel::-webkit-scrollbar-thumb { background: rgba(123,92,255,0.25); border-radius: 10px; }
+    .chat-messages::-webkit-scrollbar-thumb:hover, .panel::-webkit-scrollbar-thumb:hover { background: rgba(123,92,255,0.45); }
+    .chat-messages, .panel { scrollbar-width: thin; scrollbar-color: rgba(123,92,255,0.25) transparent; }
     .chat-messages::-webkit-scrollbar { width: 4px; }
     .chat-messages::-webkit-scrollbar-track { background: transparent; }
     .chat-messages::-webkit-scrollbar-thumb { background: rgba(123,92,255,0.2); border-radius: 2px; }
