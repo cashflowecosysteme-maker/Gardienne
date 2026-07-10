@@ -237,8 +237,15 @@ async function handleChat(request, env) {
   const sessionRaw = await env.GARDIENNE_KV.get(`session:${token}`);
   if (!sessionRaw) return json({ error: 'Session expirée. Reconnecte-toi.' }, 401);
 
-  const systemPrompt = (SYSTEM_PROMPTS[agent] || SYSTEM_PROMPTS.nyxia)
+  let systemPrompt = (SYSTEM_PROMPTS[agent] || SYSTEM_PROMPTS.nyxia)
     .replace(/\{first_name\}/g, userName || 'Gardienne');
+
+  // Injecte la vraie banque de parchemins de l'agent actif, si elle existe dans le KV.
+  // L'agent doit PIGER dedans, jamais improviser un parchemin de zéro.
+  const bankRaw = await env.GARDIENNE_KV.get(`parchemins:${agent}`);
+  if (bankRaw) {
+    systemPrompt += `\n\n📜 TA BANQUE DE PARCHEMINS RÉELLE (usage obligatoire)\n\nVoici ta vraie banque de parchemins et messages de relance, au format JSON. Quand tu remets un parchemin à la Gardienne, tu DOIS piger dans cette banque — choisis l'entrée dont le "theme" correspond le mieux à ce qu'elle vit ou demande, et utilise son "hameçon" et son "parchemin" tels quels (tu peux les adapter légèrement au fil de la conversation, mais ne les remplace jamais par une improvisation complète). Si aucune entrée ne correspond bien, dis-le honnêtement plutôt que d'inventer un parchemin de toutes pièces.\n\n${bankRaw}`;
+  }
 
   const messages = [
     { role: 'system', content: systemPrompt },
