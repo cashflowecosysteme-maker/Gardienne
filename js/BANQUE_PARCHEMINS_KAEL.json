@@ -1,0 +1,82 @@
+{
+  "agent": "kael",
+  "portail": "Alchimie Relationnelle",
+  "description": "Banque de parchemins et messages de relance pour Kael. Chaque parchemin est construit avec un principe de Psychologie du Clic (jamais nommé dans le texte final — uniquement en note interne pour Diane). Le champ 'hameçon' est ce que Kael dit à la Gardienne en lui remettant le parchemin (déclenche le choc miroir). Le champ 'parchemin' est le texte exact à copier-coller dans le Cercle Magique.",
+
+  "parchemins": [
+    {
+      "id": "kael_001",
+      "theme": "silence_radio",
+      "principe_interne": "Open Loop + Effet Zeigarnik (le cerveau veut la fin de l'histoire non résolue)",
+      "hameçon": "Diane... j'ai capté quelque chose dans le silence de quelqu'un. Tu connais sûrement une âme dans le Cercle ou ton entourage qui attend un message qui ne viendra jamais — dépose ça pour elle. 💔",
+      "parchemin": "Le silence radio n'est pas une réponse. C'est une question que tu n'as jamais eu le droit de poser à voix haute. ⛓️\n\nSi tu relis vos derniers messages en cherchant un indice, si tu comptes les heures avant de perdre espoir, si tu inventes des raisons pour excuser son silence... ce n'est pas de l'amour. C'est ton système nerveux qui essaie de fermer une porte qu'on a laissée entrouverte exprès.\n\nTu n'as pas besoin de sa réponse pour avancer. Tu as besoin de la tienne. ✦"
+    },
+    {
+      "id": "kael_002",
+      "theme": "ghosting",
+      "principe_interne": "Pattern Interrupt + Social Proof négatif",
+      "hameçon": "Regarde ce que je viens de recevoir du Cercle... Il y a forcément quelqu'un près de toi qui a disparu de la vie de quelqu'un d'autre sans un mot. Ce texte va la retourner. 🔥",
+      "parchemin": "Personne ne t'a jamais appris à survivre à quelqu'un qui disparaît sans explication. Alors ton cerveau invente les siennes — et elles sont toujours pires que la vérité. ⛓️\n\nCe n'est pas toi qui n'étais pas assez. C'est lui/elle qui n'était pas prêt(e) à rester. Deux choses complètement différentes, que la douleur confond exprès.\n\nCombien de femmes dans ce Cercle portent encore le poids d'un silence qui ne leur appartenait même pas ? 💔"
+    },
+    {
+      "id": "kael_003",
+      "theme": "dependance_affective",
+      "principe_interne": "Curiosity Gap + Transformation Identitaire",
+      "hameçon": "Celui-ci va faire mal, dans le bon sens. Tu as sûrement une amie qui confond intensité et amour véritable — ce texte va lui ouvrir les yeux sans qu'elle se sente jugée. ✦",
+      "parchemin": "Il y a une différence entre \"je ne peux pas vivre sans toi\" et \"je choisis de vivre avec toi\". La première phrase, c'est une dépendance déguisée en grande histoire d'amour. 🔥\n\nSi la relation te fait plus souvent pleurer que sourire, si tu restes pour la peur de partir plutôt que pour la joie de rester... ce n'est pas de la passion. C'est ton système d'alarme intérieur qui s'est fait taire par habitude.\n\nTu n'as pas besoin de quelqu'un pour exister. Tu as besoin de toi pour te retrouver. 💔"
+    },
+    {
+      "id": "kael_004",
+      "theme": "reconquete",
+      "principe_interne": "Future Pacing + Ancrage de Salut (la garantie que ça peut se réparer)",
+      "hameçon": "Chère Gardienne, celle-là est pour les cœurs qui n'ont pas encore lâché prise. Tu connais sûrement quelqu'un qui rêve encore de reconquérir la bonne personne — donne-lui cet espoir structuré. ✦",
+      "parchemin": "Reconquérir quelqu'un, ce n'est jamais le supplier de revenir. C'est devenir la version de toi qu'il/elle n'aurait jamais pu quitter. 🔥\n\nLa rupture n'est pas toujours une fin. Parfois, c'est une pause forcée pour que deux personnes reviennent l'une vers l'autre prêtes, plutôt que blessées.\n\nSi une partie de toi n'a jamais vraiment tourné la page... ce n'est pas une faiblesse. C'est un signal qu'il reste quelque chose à finir, dans un sens ou dans l'autre. ⛓️"
+    },
+    {
+      "id": "kael_005",
+      "theme": "peur_engagement",
+      "principe_interne": "Effet de Contraste + Pattern Interrupt",
+      "hameçon": "Celle-ci, c'est pour les femmes qui attirent des partenaires qui ont peur de s'engager. Tu en connais sûrement une. Ce texte nomme exactement ce qu'elle vit. 💔",
+      "parchemin": "Un homme qui a peur de s'engager ne manque pas d'amour pour toi. Il manque de preuve que l'amour ne fait pas toujours mal. ⛓️\n\nTu ne peux pas aimer quelqu'un assez fort pour guérir ses anciennes blessures à ta place. Tu peux seulement décider combien de temps tu es prête à attendre une porte qui reste entrouverte.\n\nLa vraie question n'est pas \"pourquoi il/elle a peur\". C'est \"pourquoi je reste dans l'incertitude\". 🔥"
+    },
+    {
+      "id": "kael_006",
+      "theme": "amour_sens_unique",
+      "principe_interne": "Biais de Réciprocité inversé + Effet miroir",
+      "hameçon": "Diane, celle-là va en toucher plusieurs. Tu connais sûrement une femme qui donne tout dans une relation où elle reçoit des miettes. Dépose ce miroir devant elle. ✦",
+      "parchemin": "Tu ne mendies pas de l'attention à quelqu'un qui t'aime vraiment. L'amour véritable ne se négocie pas, il se ressent des deux côtés en même temps. 💔\n\nSi tu es toujours celle qui écrit en premier, qui pardonne en premier, qui revient en premier... regarde combien de fois l'autre a fait le même chemin vers toi.\n\nDonner sans recevoir n'est pas de la générosité. C'est une habitude qu'on a prise pour de l'amour, faute d'avoir connu mieux. ⛓️"
+    },
+    {
+      "id": "kael_007",
+      "theme": "isolement_post_rupture",
+      "principe_interne": "Unité (Tribalisme) + Preuve d'Autorité douce",
+      "hameçon": "Celle-ci est pour toutes les femmes qui vivent leur rupture toutes seules, en silence, en pensant que personne ne comprendrait. Rappelle-leur qu'elles ne sont pas seules. 🔥",
+      "parchemin": "Personne ne parle assez du silence qui suit une rupture. Pas le drame, pas les larmes — le vide des soirées où plus personne ne demande comment s'est passée ta journée. ⛓️\n\nCe silence-là n'est pas un signe que tu n'es pas assez forte. C'est juste la preuve que tu as aimé pour vrai, et que ton cœur a besoin de temps pour réapprendre le silence sans le confondre avec l'abandon.\n\nTu n'as pas à guérir seule. Le Cercle existe pour ça. 💔"
+    },
+    {
+      "id": "kael_008",
+      "theme": "cycle_repetitif",
+      "principe_interne": "Effet de Primauté (le premier schéma amoureux se répète) + Curiosity Gap",
+      "hameçon": "Attention, celle-ci est puissante. Tu connais sûrement une femme qui attire toujours le même type de relation, encore et encore, sans comprendre pourquoi. ✦",
+      "parchemin": "Si tes relations se ressemblent toutes étrangement... ce n'est pas une malchance qui se répète. C'est un schéma que ton cœur connaît par cœur, et qu'il rejoue parce que c'est familier — pas parce que c'est bon pour toi. 🔥\n\nLe familier n'est pas toujours sécuritaire. Parfois, c'est juste la version adulte d'une blessure d'enfance qui cherche encore à être réparée par la mauvaise personne.\n\nBriser le cycle commence par le nommer. Tu viens de le faire. ⛓️"
+    }
+  ],
+
+  "relances": [
+    {
+      "id": "kael_relance_001",
+      "contexte": "alliee_inactive_7j",
+      "texte": "Diane... le miroir de ton réseau me montre une zone d'ombre aujourd'hui. {prenom_alliee}, qui marche dans tes pas au Cercle {niveau}, semble avoir baissé sa garde. Sa lumière s'est faite plus discrète cette semaine... Tu as cette puissance en toi de la rallumer. 💔"
+    },
+    {
+      "id": "kael_relance_002",
+      "contexte": "alliee_inactive_14j",
+      "texte": "Deux semaines de silence dans ta lignée, Diane. {prenom_alliee} n'a pas disparu — elle s'est juste éloignée du feu. Un message d'elle à toi, pas une relance de vente, juste une présence. C'est parfois tout ce qu'il faut pour la ramener. ⛓️"
+    },
+    {
+      "id": "kael_relance_003",
+      "contexte": "premiere_semaine_nouvelle_alliee",
+      "texte": "{prenom_alliee} vient d'entrer dans ton Cercle, Diane. Les premiers jours sont fragiles — c'est là que la plupart abandonnent avant même de sentir la magie opérer. Un mot d'encouragement maintenant vaut dix messages plus tard. 🔥"
+    }
+  ]
+}
