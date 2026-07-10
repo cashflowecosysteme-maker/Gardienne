@@ -711,16 +711,29 @@ async function handleMediaFile(request, env, url) {
   return new Response(upstream.body, { status: 200, headers });
 }
 
-// ───────────── VOIX HEYGEN — NyXia uniquement ─────────────
-// Génère la vraie voix clonée de NyXia via HeyGen, cohérente sur tous ses portails.
-// Les autres personnages (Séléna, Kael, Léna, Éric) restent sur la synthèse vocale
-// gratuite du navigateur — décision volontaire pour garder les coûts de ce portail minimes.
+// ───────────── VOIX HEYGEN — tous les personnages ─────────────
+// Chaque personnage peut avoir sa propre voix clonée/designée sur HeyGen, cohérente
+// sur tous les portails. Si aucun voice_id n'est configuré pour un agent, le Worker
+// répond simplement "pas de voix HeyGen" — le frontend retombe alors sur la voix
+// gratuite du navigateur pour ce personnage précis.
+
+const AGENT_VOICE_ID_KEYS = {
+  nyxia:  'HEYGEN_NYXIA_VOICE_ID',
+  selena: 'HEYGEN_SELENA_VOICE_ID',
+  kael:   'HEYGEN_KAEL_VOICE_ID',
+  lena:   'HEYGEN_LENA_VOICE_ID',
+  eric:   'HEYGEN_ERIC_VOICE_ID'
+};
 
 async function handleTTSNyxia(request, env) {
-  const { token, text } = await request.json();
+  const { token, text, agent } = await request.json();
   const session = await getSessionOrNull(token, env);
   if (!session) return json({ error: 'Session expirée.' }, 401);
   if (!text) return json({ error: 'Texte requis.' }, 400);
+
+  const voiceIdKey = AGENT_VOICE_ID_KEYS[agent] || AGENT_VOICE_ID_KEYS.nyxia;
+  const voiceId = env[voiceIdKey];
+  if (!voiceId) return json({ error: 'Aucune voix HeyGen configurée pour cet agent.' }, 404);
 
   const cleanText = text.slice(0, 4900); // marge sous la limite de 5000 caractères de HeyGen
 
@@ -730,12 +743,15 @@ async function handleTTSNyxia(request, env) {
       'X-Api-Key': env.HEYGEN_API_KEY,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ text: cleanText, voice_id: env.HEYGEN_NYXIA_VOICE_ID })
+    body: JSON.stringify({ text: cleanText, voice_id: voiceId })
   });
 
-  if (!resp.ok) return json({ error: 'Erreur HeyGen.' }, 502);
+  if (!resp.ok) {
+    const errText = await resp.text();
+    return json({ error: 'Erreur HeyGen (' + resp.status + ') : ' + errText.slice(0, 300) }, 502);
+  }
   const data = await resp.json();
-  if (data.error) return json({ error: data.error }, 502);
+  if (data.error) return json({ error: 'HeyGen : ' + data.error }, 502);
 
   const audioUrl = data.data && data.data.audio_url;
   if (!audioUrl) return json({ error: 'Aucun audio généré.' }, 502);
