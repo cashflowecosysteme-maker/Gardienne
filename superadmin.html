@@ -338,6 +338,42 @@ tr:hover td{background:rgba(123,92,255,0.05)}
       </form>
     </div>
 
+    <!-- Messagerie interne -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">💌 Messagerie</div>
+          <div class="panel-subtitle">Envoie un message à une Gardienne précise, ou une diffusion à toutes</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Destinataire</label>
+          <select id="msg-admin-recipient">
+            <option value="">— Choisir une Gardienne —</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="checkbox-label" style="margin-top:28px">
+            <input type="checkbox" id="msg-admin-broadcast" onchange="toggleBroadcastMode(this)">
+            <span>📢 Diffusion à toutes les Gardiennes (ignore le destinataire ci-dessus)</span>
+          </label>
+        </div>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label>Sujet (optionnel)</label>
+        <input type="text" id="msg-admin-subject" placeholder="Un mot du Cercle...">
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label>Message *</label>
+        <textarea id="msg-admin-body" rows="4" placeholder="Ton message..." style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(123,92,255,0.2);background:rgba(15,28,63,0.5);color:#fff;font-family:inherit;font-size:13px;resize:vertical"></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-primary" onclick="sendAdminMessage()" id="btn-send-admin-msg">Envoyer</button>
+      </div>
+      <div id="msg-admin-status" style="margin-top:10px;font-size:13px"></div>
+    </div>
+
     <!-- Accounts List -->
     <div class="panel">
       <div class="panel-header">
@@ -722,6 +758,7 @@ async function loadAccounts() {
     if (res.clients) {
       accounts = res.clients;
       renderAccounts();
+      populateMessageRecipients();
       // Stats
       var clientAccounts = accounts.filter(function(a) {
         return (a.role || 'client') !== 'superadmin';
@@ -741,6 +778,72 @@ async function loadAccounts() {
     document.getElementById('stat-today').textContent = '0';
     showError('Connexion au Worker impossible. Aucun compte local ne sera utilisé. Vérifie le déploiement Cloudflare/KV.');
   }
+}
+
+/* ═══════════════════════════════════════════════
+   MESSAGERIE
+   ═══════════════════════════════════════════════ */
+
+function populateMessageRecipients() {
+  var sel = document.getElementById('msg-admin-recipient');
+  if (!sel) return;
+  var current = sel.value;
+  sel.innerHTML = '<option value="">— Choisir une Gardienne —</option>';
+  accounts.filter(function(a) { return (a.role || 'client') !== 'superadmin'; }).forEach(function(a) {
+    var opt = document.createElement('option');
+    opt.value = a.email;
+    opt.textContent = (a.firstName || a.name || a.email) + ' (' + a.email + ')';
+    sel.appendChild(opt);
+  });
+  sel.value = current;
+}
+
+function toggleBroadcastMode(checkbox) {
+  document.getElementById('msg-admin-recipient').disabled = checkbox.checked;
+}
+
+async function sendAdminMessage() {
+  if (!requireAdminSession()) return;
+
+  var broadcast = document.getElementById('msg-admin-broadcast').checked;
+  var toEmail = document.getElementById('msg-admin-recipient').value;
+  var subject = document.getElementById('msg-admin-subject').value.trim();
+  var body = document.getElementById('msg-admin-body').value.trim();
+  var status = document.getElementById('msg-admin-status');
+  var btn = document.getElementById('btn-send-admin-msg');
+
+  if (!broadcast && !toEmail) { status.textContent = '⚠️ Choisis une destinataire ou active la diffusion.'; status.style.color = 'var(--red)'; return; }
+  if (!body) { status.textContent = '⚠️ Écris un message.'; status.style.color = 'var(--red)'; return; }
+
+  btn.disabled = true;
+  status.textContent = 'Envoi en cours…';
+  status.style.color = 'var(--t3)';
+
+  try {
+    var res = await apiCall('/api/admin/messages/send', {
+      method: 'POST',
+      body: JSON.stringify({
+        toEmail: broadcast ? undefined : toEmail,
+        broadcast: broadcast,
+        subject: subject,
+        body: body
+      })
+    });
+
+    if (res.success) {
+      status.textContent = '✅ Envoyé à ' + res.sentTo + (res.sentTo > 1 ? ' Gardiennes' : ' Gardienne') + '.';
+      status.style.color = 'var(--green)';
+      document.getElementById('msg-admin-subject').value = '';
+      document.getElementById('msg-admin-body').value = '';
+    } else {
+      status.textContent = '❌ ' + (res.error || 'Erreur lors de l\'envoi.');
+      status.style.color = 'var(--red)';
+    }
+  } catch (e) {
+    status.textContent = '❌ Impossible de joindre le Worker : ' + (e.message || 'erreur réseau');
+    status.style.color = 'var(--red)';
+  }
+  btn.disabled = false;
 }
 
 function renderAccounts() {
