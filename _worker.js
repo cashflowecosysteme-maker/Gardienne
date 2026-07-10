@@ -744,7 +744,10 @@ async function handleTTSNyxia(request, env) {
   if (!session) return json({ error: 'Session expirée.' }, 401);
   if (!text) return json({ error: 'Texte requis.' }, 400);
 
-  const cleanText = text.slice(0, 4500);
+  // Nettoyage défensif : retire tout caractère Unicode "brisé" (moitié d'emoji orpheline)
+  // qui pourrait s'être glissé dans le texte, puis tronque sans jamais couper un emoji en deux.
+  const sanitized = text.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '');
+  const cleanText = Array.from(sanitized).slice(0, 4500).join('');
   const voiceIdKey = AGENT_VOICE_ID_KEYS[agent];
   const heygenVoiceId = voiceIdKey ? env[voiceIdKey] : null;
 
