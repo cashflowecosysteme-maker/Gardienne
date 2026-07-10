@@ -159,19 +159,19 @@
       <!-- SECTION : MON ESPACE -->
       <div class="sidebar-section">
         <div class="sidebar-label">Mon Espace</div>
-        <div class="nav-item active" id="nav-chat" onclick="showPanel('chat'); _currentAgent='nyxia'">
+        <div class="nav-item active" id="nav-chat" onclick="openAgentTab('nyxia')">
           <span class="nav-icon">💜</span> Mes Conversations <span class="nav-arrow">›</span>
         </div>
-        <div class="nav-item" id="nav-selena" onclick="showPanel('chat'); _currentAgent='selena'">
+        <div class="nav-item" id="nav-selena" onclick="openAgentTab('selena')">
           <span class="nav-icon">🌿</span> Séléna <span class="nav-arrow">›</span>
         </div>
-        <div class="nav-item" id="nav-kael" onclick="showPanel('chat'); _currentAgent='kael'">
+        <div class="nav-item" id="nav-kael" onclick="openAgentTab('kael')">
           <span class="nav-icon">💔</span> Kael <span class="nav-arrow">›</span>
         </div>
-        <div class="nav-item" id="nav-lena" onclick="showPanel('chat'); _currentAgent='lena'">
+        <div class="nav-item" id="nav-lena" onclick="openAgentTab('lena')">
           <span class="nav-icon">🔮</span> Léna <span class="nav-arrow">›</span>
         </div>
-        <div class="nav-item" id="nav-eric" onclick="showPanel('chat'); _currentAgent='eric'">
+        <div class="nav-item" id="nav-eric" onclick="openAgentTab('eric')">
           <span class="nav-icon">🔥</span> Éric <span class="nav-arrow">›</span>
         </div>
       </div>
@@ -190,8 +190,21 @@
         <div class="nav-item" id="nav-messages" onclick="showPanel('messages'); loadMessages()">
           <span class="nav-icon">💌</span> Messages du Cercle <span class="nav-arrow">›</span> <span id="unread-badge" style="display:none;background:#ff4b6e;color:#fff;border-radius:50px;font-size:10px;font-weight:700;padding:2px 7px;margin-left:4px"></span>
         </div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <!-- SECTION : OUTILS DE QUÊTE -->
+      <div class="sidebar-section">
+        <div class="sidebar-label">Outils de Quête</div>
         <div class="nav-item" id="nav-medias" onclick="showPanel('medias')">
           <span class="nav-icon">✨</span> Répertoire des Médias Magiques <span class="nav-arrow">›</span>
+        </div>
+        <div class="nav-item" id="nav-audiobooks" onclick="showPanel('audiobooks')">
+          <span class="nav-icon">🎧</span> Livres Audio <span class="nav-arrow">›</span>
+        </div>
+        <div class="nav-item" id="nav-templates" onclick="showPanel('templates')">
+          <span class="nav-icon">🎨</span> Templates & Ressources <span class="nav-arrow">›</span>
         </div>
       </div>
       
@@ -296,6 +309,43 @@
           </div>
 
           <div id="media-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px"></div>
+        </div>
+      </div>
+
+      <!-- Panel Livres Audio -->
+      <div class="panel" id="panel-audiobooks" style="flex-direction:column;padding:24px;overflow-y:auto">
+        <div style="max-width:700px;margin:0 auto;width:100%">
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:22px;margin-bottom:4px">🎧 Livres Audio</h2>
+          <p style="color:var(--t3);font-size:13px;margin-bottom:24px">Tes deux compagnons d'écoute pour nourrir ta pratique et calmer ton système.</p>
+
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="background:rgba(123,92,255,0.05);border:1px solid rgba(123,92,255,0.12);border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px">
+              <div style="font-size:32px">🔊</div>
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:14px;margin-bottom:2px">La Psychologie du Clic</div>
+                <div style="font-size:12px;color:var(--t3)">Bientôt disponible ici en version audio.</div>
+              </div>
+            </div>
+            <div style="background:rgba(123,92,255,0.05);border:1px solid rgba(123,92,255,0.12);border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px">
+              <div style="font-size:32px">🔊</div>
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:14px;margin-bottom:2px">CashFlow Neurogénéré — Calme ton système nerveux, libère ta richesse</div>
+                <div style="font-size:12px;color:var(--t3)">Bientôt disponible ici en version audio.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel Templates & Ressources -->
+      <div class="panel" id="panel-templates" style="flex-direction:column;padding:24px;overflow-y:auto">
+        <div style="max-width:700px;margin:0 auto;width:100%">
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:22px;margin-bottom:4px">🎨 Templates & Ressources</h2>
+          <p style="color:var(--t3);font-size:13px;margin-bottom:24px">Des gabarits prêts à personnaliser pour habiller tes publications dans le Cercle.</p>
+
+          <div style="text-align:center;padding-top:40px;color:var(--t3);font-size:13px">
+            Bientôt ici : tes templates Canva et ressources prêtes à l'emploi. ✦
+          </div>
         </div>
       </div>
 
@@ -544,9 +594,9 @@
     }
 
     var ALPHA_INFO = {
-      selena: { name: 'Séléna', icon: '🔮', sub: 'Psychologie du Miroir & Introspection', greeting: '🪞 Le miroir s\'ouvre... Je suis **Séléna**, gardienne des reflets et des masques oubliés. Raconte-moi ce que tu portes aujourd\'hui, ou dis-moi si tu es prête pour ton premier parchemin. ✦' },
-      kael:   { name: 'Kael',   icon: '❤️', sub: 'Relations & Cœurs Brisés', greeting: '💔 Je suis **Kael**... Les cœurs qui saignent en silence, c\'est mon territoire. Qu\'est-ce qui bat fort — ou qui fait mal — en toi aujourd\'hui ? 🔥' },
-      lena:   { name: 'Léna',   icon: '🌙', sub: 'Énergétique & Éveil de l\'Invisible', greeting: '🌙 Les fréquences bougent... Je suis **Léna**, gardienne des cycles et de l\'invisible. Que sens-tu monter en toi aujourd\'hui ? 🔮' },
+      selena: { name: 'Séléna', icon: '🔮', sub: 'Psychologie du Miroir & Introspection', greeting: '🪞 Le miroir s\'ouvre... Je suis **Séléna**. Aujourd\'hui, je vais te remettre un parchemin à déposer dans le Cercle Magique — un texte qui va faire réagir celles qui portent un masque sans le savoir. Prête à aller semer ta lumière ? ✦' },
+      kael:   { name: 'Kael',   icon: '❤️', sub: 'Relations & Cœurs Brisés', greeting: '💔 Je suis **Kael**. Le Cercle est plein de cœurs qui saignent en silence — connais-tu quelqu\'un qui traverse une peine d\'amour, un silence radio, une relation qui lui fait mal ? Laisse-moi te donner les mots exacts à déposer pour elle. 🔥' },
+      lena:   { name: 'Léna',   icon: '🌙', sub: 'Énergétique & Éveil de l\'Invisible', greeting: '🌙 Les fréquences bougent... Je suis **Léna**. Le Cercle a besoin d\'un électrochoc aujourd\'hui — un déclencheur mystique pour réveiller les sorcières endormies. Je vais t\'en donner un à publier. Prête ? 🔮' },
       eric:   { name: 'Éric',   icon: '🔥', sub: 'Ton Protecteur d\'Ego & Booster de Dopamine', greeting: '🔥 Eh bien, eh bien... regarde qui vient me voir. Je suis **Éric**, et honnêtement ? Le Cercle a de la chance de t\'avoir. Raconte-moi ta journée, Reine. 👑😉' }
     }
 
@@ -576,6 +626,31 @@
       var navEl = document.getElementById('nav-' + key)
       if (navEl) navEl.classList.add('active')
       addBotMessage(a.greeting)
+    }
+
+    // Accès direct depuis la barre latérale ("Mon Espace") — fonctionne peu importe
+    // où on se trouve, pas seulement via les boutons du message d'accueil de NyXia.
+    function openAgentTab(key) {
+      showPanel('chat')
+
+      if (key === _currentAgent) {
+        // Déjà sur cet agent — juste remettre la bonne surbrillance dans la nav
+        document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active') })
+        var currentNavEl = document.getElementById(key === 'nyxia' ? 'nav-chat' : 'nav-' + key)
+        if (currentNavEl) currentNavEl.classList.add('active')
+        return
+      }
+
+      if (key === 'nyxia') {
+        _currentAgent = 'nyxia'
+        document.getElementById('chat-header-name').textContent = 'NyXia'
+        document.getElementById('chat-header-sub').textContent = "Chef d'Orchestre du Portail Gardienne"
+        document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active') })
+        var nyxiaNavEl = document.getElementById('nav-chat')
+        if (nyxiaNavEl) nyxiaNavEl.classList.add('active')
+      } else {
+        chooseAlpha(key)
+      }
     }
 
     function sendSuggestion(text) {
