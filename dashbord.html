@@ -74,6 +74,7 @@
     .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
     .chat-header { padding: 16px 24px; border-bottom: 1px solid rgba(123,92,255,0.1); background: rgba(10,22,40,0.6); backdrop-filter: blur(10px); display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
     .chat-header img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(123,92,255,0.4); box-shadow: 0 0 24px rgba(123,92,255,0.35); }
+    .chat-header-badge { width: 44px; height: 44px; border-radius: 50%; border: 2px solid rgba(123,92,255,0.4); box-shadow: 0 0 24px rgba(123,92,255,0.35); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
     .chat-header-info { flex: 1; }
     .chat-header-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; background: linear-gradient(135deg, #a78bfa, var(--p3)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .chat-header-sub { font-size: 12px; color: var(--t3); }
@@ -223,7 +224,7 @@
       <div class="panel active" id="panel-chat">
         <div class="chat-area">
           <div class="chat-header">
-            <img src="/NyXia.png" alt="NyXia">
+            <span id="chat-header-avatar"><img src="/NyXia.png" alt="NyXia"></span>
             <div class="chat-header-info">
               <div class="chat-header-name" id="chat-header-name">NyXia</div>
               <div class="chat-header-sub" id="chat-header-sub">Chef d'Orchestre du Portail Gardienne</div>
@@ -600,6 +601,27 @@
       eric:   { name: 'Éric',   icon: '🔥', sub: 'Ton Protecteur d\'Ego & Booster de Dopamine', greeting: '🔥 Eh bien, eh bien... regarde qui vient me voir. Je suis **Éric**, et honnêtement ? Le Cercle a de la chance de t\'avoir. Raconte-moi ta journée, Reine. 👑😉' }
     }
 
+    var AGENT_IMAGES = {
+      nyxia:  '/NyXia.png',
+      selena: '/Selena.png',
+      kael:   '/Kael.png',
+      lena:   '/Lena.png',
+      eric:   '/Eric.png'
+    }
+
+    function avatarHtmlFor(key, sizeClass) {
+      sizeClass = sizeClass || 'msg-avatar'
+      var src = AGENT_IMAGES[key] || AGENT_IMAGES.nyxia
+      var name = (ALPHA_INFO[key] && ALPHA_INFO[key].name) || 'NyXia'
+      return '<img src="' + src + '" class="' + sizeClass + '" alt="' + name + '">'
+    }
+
+    function updateHeaderAvatar(key) {
+      var el = document.getElementById('chat-header-avatar')
+      if (!el) return
+      el.innerHTML = '<img src="' + (AGENT_IMAGES[key] || AGENT_IMAGES.nyxia) + '" alt="' + ((ALPHA_INFO[key] && ALPHA_INFO[key].name) || 'NyXia') + '">'
+    }
+
     function addAlphaChoiceButtons() {
       var msgs = document.getElementById('chat-messages')
       var row = document.createElement('div')
@@ -622,6 +644,7 @@
       _currentAgent = key
       document.getElementById('chat-header-name').textContent = a.name
       document.getElementById('chat-header-sub').textContent = a.sub
+      updateHeaderAvatar(key)
       document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active') })
       var navEl = document.getElementById('nav-' + key)
       if (navEl) navEl.classList.add('active')
@@ -645,6 +668,7 @@
         _currentAgent = 'nyxia'
         document.getElementById('chat-header-name').textContent = 'NyXia'
         document.getElementById('chat-header-sub').textContent = "Chef d'Orchestre du Portail Gardienne"
+        updateHeaderAvatar('nyxia')
         document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active') })
         var nyxiaNavEl = document.getElementById('nav-chat')
         if (nyxiaNavEl) nyxiaNavEl.classList.add('active')
@@ -715,7 +739,8 @@
     function addBotMessage(text) {
       var msgs = document.getElementById('chat-messages')
       var div = document.createElement('div'); div.className = 'msg bot'
-      var wrapper = document.createElement('div'); wrapper.style.cssText = 'display:flex;flex-direction:column;gap:4px;max-width:100%'
+      div.style.cssText = 'display:flex;gap:10px;align-items:flex-start'
+      var wrapper = document.createElement('div'); wrapper.style.cssText = 'display:flex;flex-direction:column;gap:4px;max-width:100%;flex:1'
 
       var imgRegex = /\[IMAGE\s*:\s*([\s\S]*?)\]/i
       var imgMatch = text.match(imgRegex)
@@ -780,6 +805,7 @@
       pdfBtn.addEventListener('click', function() { var w = window.open('', '_blank'); if (!w) return; var body = '<h2 style="color:#7B5CFF">NyXia IA</h2>' + escHtml(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>'); w.document.write('<!DOCTYPE html><html><head><title>NyXia</title><style>body{font-family:Georgia,serif;max-width:760px;margin:48px auto;line-height:1.85}</style></head><body>' + body + '</body></html>'); w.document.close(); setTimeout(function() { w.print() }, 300) }); acts.appendChild(pdfBtn)
 
       wrapper.appendChild(acts)
+      div.innerHTML = avatarHtmlFor(_currentAgent)
       div.appendChild(wrapper)
       msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight
     }
@@ -795,7 +821,8 @@
     function addTyping() {
       var msgs = document.getElementById('chat-messages')
       var div = document.createElement('div'); div.className = 'msg bot'; div.id = 'typing-indicator'
-      div.innerHTML = '<img src="/NyXia.png" class="msg-avatar" alt="NyXia"><div class="msg-bubble"><span class="nx-dots"><i></i><i></i><i></i></span></div>'
+      div.style.cssText = 'display:flex;gap:10px;align-items:flex-start'
+      div.innerHTML = avatarHtmlFor(_currentAgent) + '<div class="msg-bubble"><span class="nx-dots"><i></i><i></i><i></i></span></div>'
       msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight
     }
 
