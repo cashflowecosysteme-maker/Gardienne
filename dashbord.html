@@ -390,7 +390,7 @@
       addTyping()
       fetch('/api/chat', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: chatHistory.slice(-10), userName: clientName, agent: _currentAgent, attachment: attachmentToSend })
+        body: JSON.stringify({ message: text, history: chatHistory.slice(-10), userName: clientName, agent: _currentAgent, attachment: attachmentToSend, token: sessionToken })
       })
       .then(r => r.json())
       .then(data => {
