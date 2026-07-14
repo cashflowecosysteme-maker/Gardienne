@@ -173,10 +173,12 @@
       <!-- SECTION : MON ESPACE -->
       <div class="sidebar-section">
         <div class="sidebar-label">Mon Espace</div>
-        <div class="nav-item active" id="nav-chat" onclick="openAgentTab('nyxia')">
+        <div class="nav-item" id="nav-chat" onclick="openAgentTab('nyxia')">
           <span class="nav-icon">💜</span> Mes Conversations <span class="nav-arrow">›</span>
         </div>
-        <div style="padding:4px 12px 0;font-size:13px;font-weight:700;color:#fff">NyXia</div>
+        <div class="nav-item active" id="nav-nyxia" onclick="openAgentTab('nyxia')">
+          <span class="nav-icon">✦</span> NyXia <span class="nav-arrow">›</span>
+        </div>
         <div class="nav-item" id="nav-selena" onclick="openAgentTab('selena')">
           <span class="nav-icon">🌿</span> Séléna <span class="nav-arrow">›</span>
         </div>
@@ -728,6 +730,8 @@
         document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active') })
         var nyxiaNavEl = document.getElementById('nav-chat')
         if (nyxiaNavEl) nyxiaNavEl.classList.add('active')
+        var nyxiaNavEl2 = document.getElementById('nav-nyxia')
+        if (nyxiaNavEl2) nyxiaNavEl2.classList.add('active')
         var msgs = currentMsgsEl()
         if (msgs) msgs.scrollTop = msgs.scrollHeight
       } else {
