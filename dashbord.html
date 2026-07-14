@@ -241,7 +241,7 @@
             <span id="chat-header-avatar"><img src="/NyXia.png" alt="NyXia"></span>
             <div class="chat-header-info">
               <div class="chat-header-name" id="chat-header-name">NyXia</div>
-              <div class="chat-header-sub" id="chat-header-sub">Chef d'Orchestre du Portail Gardienne</div>
+              <div class="chat-header-sub" id="chat-header-sub">NyXia, L'Architecte des Portails</div>
             </div>
             <button class="btn-speak" id="btn-speak" onclick="jouerMessageDiane()">🔊 Message de Diane</button>
           </div>
@@ -723,7 +723,7 @@
       if (key === 'nyxia') {
         switchToAgentContainer('nyxia')
         document.getElementById('chat-header-name').textContent = 'NyXia'
-        document.getElementById('chat-header-sub').textContent = "Chef d'Orchestre du Portail Gardienne"
+        document.getElementById('chat-header-sub').textContent = "NyXia, L'Architecte des Portails"
         updateHeaderAvatar('nyxia')
         document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active') })
         var nyxiaNavEl = document.getElementById('nav-chat')
