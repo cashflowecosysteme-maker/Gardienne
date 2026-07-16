@@ -812,7 +812,7 @@ const OPENAI_VOICE_MAP = {
   selena: 'shimmer', // douce, féminine
   kael:   'onyx',    // grave, masculine, intense
   lena:   'nova',    // féminine, éthérée
-  alex:   'fable',   // masculine, chaleureuse, conteur
+  alex:   'sage',    // masculine, calme, posée, mesurée
   eric:   'echo'     // masculine, chaleureuse
 };
 
@@ -909,7 +909,7 @@ async function handleTTSNyxia(request, env) {
   // ── Voie 2 : OpenAI (voix distinctes, moins chères, sans clonage) ──
   const openaiVoice = OPENAI_VOICE_MAP[agent];
   if (openaiVoice) {
-    const cacheKey = 'tts_cache_openai:' + agent + ':' + (await sha256Hex(cleanText));
+    const cacheKey = 'tts_cache_openai:' + agent + ':' + openaiVoice + ':' + (await sha256Hex(cleanText));
     const cachedBuf = await env.GARDIENNE_KV.get(cacheKey, 'arrayBuffer');
     if (cachedBuf) {
       return json({
