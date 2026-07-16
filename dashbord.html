@@ -721,11 +721,35 @@
       var navEl = document.getElementById('nav-' + key)
       if (navEl) navEl.classList.add('active')
       if (isFirstVisit) {
+        var videoUrl = AGENT_WELCOME_VIDEO[key]
+        if (videoUrl) addVideoMessage(videoUrl, key)
         addBotMessage(a.greeting)
       } else {
         var msgs = currentMsgsEl()
         if (msgs) msgs.scrollTop = msgs.scrollHeight
       }
+    }
+
+    // Vidéo de bienvenue (Alexya.ia) — jouée automatiquement une fois, avec ses
+    // propres contrôles pour la réécouter ensuite. Toujours suivie du texte.
+    function addVideoMessage(videoUrl, agentKey) {
+      var msgs = document.getElementById('chat-messages-' + agentKey)
+      var div = document.createElement('div'); div.className = 'msg bot'
+      div.style.cssText = 'display:flex;gap:10px;align-items:flex-start'
+      var wrapper = document.createElement('div'); wrapper.style.cssText = 'display:flex;flex-direction:column;gap:4px;max-width:100%;flex:1'
+      var videoWrap = document.createElement('div')
+      videoWrap.style.cssText = 'border-radius:14px;overflow:hidden;max-width:320px;background:#000'
+      var video = document.createElement('video')
+      video.src = videoUrl
+      video.controls = true
+      video.playsInline = true
+      video.style.cssText = 'width:100%;display:block'
+      videoWrap.appendChild(video)
+      wrapper.appendChild(videoWrap)
+      div.innerHTML = avatarHtmlFor(agentKey)
+      div.appendChild(wrapper)
+      msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight
+      video.play().catch(function() { /* lecture auto bloquée par le navigateur — la Gardienne peut cliquer play elle-même */ })
     }
 
     // Accès direct depuis la barre latérale ("Mon Espace") — fonctionne peu importe
@@ -964,6 +988,12 @@
       lena:   '/Bienvenue_dans_le_portail_spirituel_Lena.mp3',
       alex:   '/Bienvenue_dans_le_portail_auteur_Alex.mp3',
       eric:   '/Bienvenue_dans_le_portail_gardienne_Eric.mp3'
+    }
+
+    // Vidéos d'accueil (Alexya.ia) — jouées UNE fois à la première visite de chaque
+    // personnage, toujours EN PLUS du texte de bienvenue, jamais à sa place.
+    var AGENT_WELCOME_VIDEO = {
+      kael: '/VideoBienvenueKael.mp4'
     }
 
     function jouerMessageDiane() {
