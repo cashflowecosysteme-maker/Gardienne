@@ -245,7 +245,7 @@
               <div class="chat-header-name" id="chat-header-name">NyXia</div>
               <div class="chat-header-sub" id="chat-header-sub">NyXia, L'Architecte des Portails</div>
             </div>
-            <button class="btn-speak" id="btn-speak" onclick="jouerMessageDiane()">🔊 Message de Diane</button>
+            <button class="btn-speak" id="btn-speak" onclick="jouerMessageDiane()">🔊 Message d'accueil</button>
           </div>
           <div class="chat-messages active-chat" id="chat-messages-nyxia"></div>
           <div class="chat-messages" id="chat-messages-selena"></div>
@@ -636,6 +636,11 @@
     // Bascule l'espace de conversation visible — chaque personnage garde le sien,
     // NyXia n'est plus jamais mélangée avec les Alphas.
     function switchToAgentContainer(key) {
+      if (_msgDiane && !_msgDiane.paused) {
+        _msgDiane.pause(); _msgDiane.currentTime = 0
+        var speakBtn = document.getElementById('btn-speak')
+        if (speakBtn) { speakBtn.textContent = '🔊 Message d\'accueil'; speakBtn.classList.remove('speaking') }
+      }
       document.querySelectorAll('.chat-messages').forEach(function(el) { el.classList.remove('active-chat') })
       var container = document.getElementById('chat-messages-' + key)
       if (container) container.classList.add('active-chat')
@@ -945,18 +950,27 @@
     }
 
     var _msgDiane = null;
+    var AGENT_WELCOME_AUDIO = {
+      nyxia:  '/DianeMessageClientes.mp3',
+      selena: '/Bienvenue_dans_le_portail_miroir_Selena.mp3',
+      kael:   '/Bienvenue_dans_le_portail_relationnel_Kael.mp3',
+      lena:   '/Bienvenue_dans_le_portail_spirituel_Lena.mp3',
+      eric:   '/Bienvenue_dans_le_portail_gardienne_Eric.mp3'
+    }
+
     function jouerMessageDiane() {
       var btn = document.getElementById('btn-speak');
       if (_msgDiane && !_msgDiane.paused) {
         _msgDiane.pause(); _msgDiane.currentTime = 0;
-        btn.textContent = '🔊 Message de Diane'; btn.classList.remove('speaking');
+        btn.textContent = '🔊 Message d\'accueil'; btn.classList.remove('speaking');
         return;
       }
-      _msgDiane = new Audio('/DianeMessageClientes.mp3');
+      var src = AGENT_WELCOME_AUDIO[_currentAgent] || AGENT_WELCOME_AUDIO.nyxia;
+      _msgDiane = new Audio(src);
       _msgDiane.play();
       btn.textContent = '⏸ Arrêter'; btn.classList.add('speaking');
-      _msgDiane.onended  = function() { btn.textContent = '🔊 Message de Diane'; btn.classList.remove('speaking'); };
-      _msgDiane.onerror  = function() { btn.textContent = '🔊 Message de Diane'; btn.classList.remove('speaking'); };
+      _msgDiane.onended  = function() { btn.textContent = '🔊 Message d\'accueil'; btn.classList.remove('speaking'); };
+      _msgDiane.onerror  = function() { btn.textContent = '🔊 Message d\'accueil'; btn.classList.remove('speaking'); };
     }
 
     function speakText(text) {
