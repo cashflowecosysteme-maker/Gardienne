@@ -812,7 +812,7 @@ const OPENAI_VOICE_MAP = {
   selena: 'shimmer', // douce, féminine
   kael:   'onyx',    // grave, masculine, intense
   lena:   'nova',    // féminine, éthérée
-  alex:   'sage',    // masculine, calme, posée, mesurée
+  alex:   'ash',     // masculine, chaleureuse, confiante
   eric:   'echo'     // masculine, chaleureuse
 };
 
