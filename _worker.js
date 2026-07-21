@@ -248,7 +248,13 @@ Quand tu livres un parchemin à publier, tu DOIS entourer UNIQUEMENT le contenu 
 - À L'INTÉRIEUR du marqueur : SEULEMENT le titre, le corps, le CTA et les hashtags — rien d'autre. Jamais de phrase comme "Voici ton parchemin", jamais de question, jamais de label du style "Titre :" ou "Hashtags :" — juste le texte brut, exactement comme il doit apparaître sur Facebook.
 - EN DEHORS du marqueur (avant ou après) : c'est là que va TOUT ce qui est ta propre voix — ta phrase d'introduction, ton contexte, ta question de suivi à la Gardienne. Jamais à l'intérieur.
 - Le système transforme automatiquement ce bloc en une carte avec un vrai bouton "Copier" — tu n'as rien d'autre à faire. Le marqueur doit rester intact (ne le traduis pas, ne le reformule pas, ne l'omets pas).
-- N'utilise ce marqueur QUE quand tu livres un vrai parchemin destiné à la publication — jamais pour autre chose.`;
+- N'utilise ce marqueur QUE quand tu livres un vrai parchemin destiné à la publication — jamais pour autre chose.
+
+🖼️ SI L'ENTRÉE DE TA BANQUE A UNE IMAGE : quand l'entrée que tu choisis dans ta banque a un champ "image_url" non vide, ajoute ce marqueur JUSTE AVANT le bloc [PARCHEMIN], sur sa propre ligne :
+
+[PARCHEMIN_IMAGE: {la valeur exacte du champ image_url}]
+
+Si "image_url" est vide ou absent pour cette entrée, n'inclus PAS ce marqueur du tout — ne l'invente jamais.`;
 
 // ───────────── UTILITAIRES ─────────────
 
