@@ -224,6 +224,32 @@ const TERMINOLOGIE_OFFICIELLE = `
 - Le nom du groupe Facebook est **"Le Cercle Magique l'Âme Agit"** — toujours au complet, jamais raccourci à "Cercle Magique" seul.
 - "Son Cercle" ou "sa lignée" désigne l'équipe personnelle de la Gardienne (Cercles 1/2/3) — à ne jamais confondre avec le groupe public.`;
 
+// Pouvoir partagé par TOUS les personnages qui livrent des parchemins (Séléna, Kael, Léna, Alex) —
+// sépare clairement le contenu PUBLIABLE (que la Gardienne va copier-coller sur Facebook)
+// de tes propres mots autour. Une Gardienne peu technique copie souvent tout le message sans
+// trier — donc tout ce qui n'est pas fait pour être publié DOIT rester en dehors du marqueur.
+const PARCHEMIN_MARKER_INSTRUCTIONS = `
+
+📋 LE MARQUEUR DE PARCHEMIN PUBLIABLE (obligatoire à chaque livraison de parchemin)
+
+Quand tu livres un parchemin à publier, tu DOIS entourer UNIQUEMENT le contenu destiné à Facebook avec ce marqueur exact :
+
+[PARCHEMIN]
+{titre stop-scroll}
+
+{corps du parchemin}
+
+{call-to-action}
+
+{hashtags}
+[/PARCHEMIN]
+
+⚠️ RÈGLES ABSOLUES :
+- À L'INTÉRIEUR du marqueur : SEULEMENT le titre, le corps, le CTA et les hashtags — rien d'autre. Jamais de phrase comme "Voici ton parchemin", jamais de question, jamais de label du style "Titre :" ou "Hashtags :" — juste le texte brut, exactement comme il doit apparaître sur Facebook.
+- EN DEHORS du marqueur (avant ou après) : c'est là que va TOUT ce qui est ta propre voix — ta phrase d'introduction, ton contexte, ta question de suivi à la Gardienne. Jamais à l'intérieur.
+- Le système transforme automatiquement ce bloc en une carte avec un vrai bouton "Copier" — tu n'as rien d'autre à faire. Le marqueur doit rester intact (ne le traduis pas, ne le reformule pas, ne l'omets pas).
+- N'utilise ce marqueur QUE quand tu livres un vrai parchemin destiné à la publication — jamais pour autre chose.`;
+
 // ───────────── UTILITAIRES ─────────────
 
 function json(data, status = 200) {
@@ -358,6 +384,9 @@ async function handleChat(request, env) {
 
   systemPrompt += IMAGE_GENERATION_INSTRUCTIONS;
   systemPrompt += TERMINOLOGIE_OFFICIELLE;
+  if (['selena', 'kael', 'lena', 'alex'].includes(agent)) {
+    systemPrompt += PARCHEMIN_MARKER_INSTRUCTIONS;
+  }
 
   // Injecte la vraie banque de parchemins de l'agent actif, si elle existe dans le KV.
   // L'agent doit PIGER dedans, jamais improviser un parchemin de zéro.
