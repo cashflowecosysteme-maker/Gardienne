@@ -147,7 +147,6 @@
 <body>
 
   <canvas id="starry-canvas"></canvas>
-  <audio id="nyxia-audio" src="/AccueilNyXiaClientes.mp3" preload="auto"></audio>
 
   <header>
     <button id="mobile-menu-btn" onclick="toggleMobileMenu()" style="display:none;background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:0 12px;flex-shrink:0">☰</button>
@@ -436,8 +435,6 @@
     })()
 
     function initUI() {
-      var audio = document.getElementById('nyxia-audio')
-      if (audio) { audio.volume = 0.7; audio.play().catch(function(){}) }
       document.getElementById('header-username').textContent = clientName
       document.getElementById('sidebar-username').textContent = clientName
       document.getElementById('sidebar-avatar').textContent = clientName.charAt(0).toUpperCase()
