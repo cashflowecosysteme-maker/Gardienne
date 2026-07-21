@@ -913,16 +913,43 @@
 
       var imgRegex = /\[IMAGE\s*:\s*([\s\S]*?)\]/i
       var imgMatch = text.match(imgRegex)
-      var textWithoutImg = text.replace(imgRegex, '').trim()
+      var parchRegex = /\[PARCHEMIN\]([\s\S]*?)\[\/PARCHEMIN\]/i
+      var parchMatch = text.match(parchRegex)
+      var textWithoutImg = text.replace(imgRegex, '').replace(parchRegex, '').trim()
       var imgDesc = imgMatch ? imgMatch[1].trim() : null
+      var parchContent = parchMatch ? parchMatch[1].trim() : null
 
       var bubble = document.createElement('div'); bubble.className = 'msg-bubble'
       if (textWithoutImg) {
         bubble.innerHTML = cleanMarkdown(escHtml(textWithoutImg)).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')
-      } else if (!imgDesc) {
+      } else if (!imgDesc && !parchContent) {
         bubble.innerHTML = cleanMarkdown(escHtml(text)).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')
       }
       wrapper.appendChild(bubble)
+
+      // Carte de parchemin — séparée du texte de l'Alpha, avec un vrai bouton Copier qui ne
+      // prend QUE le contenu publiable, jamais ses propres mots autour. Évite qu'une Gardienne
+      // copie et publie par erreur une phrase comme "Voici ton parchemin..." sur Facebook.
+      if (parchContent) {
+        var parchWrap = document.createElement('div')
+        parchWrap.style.cssText = 'background:rgba(123,92,255,0.06);border:1px solid rgba(123,92,255,0.18);border-radius:14px;padding:16px;margin-top:4px;max-width:460px'
+        var parchText = document.createElement('div')
+        parchText.style.cssText = 'font-size:13.5px;line-height:1.7;white-space:pre-wrap;color:var(--t2)'
+        parchText.textContent = parchContent
+        parchWrap.appendChild(parchText)
+
+        var copyBtn = document.createElement('button')
+        copyBtn.textContent = '📋 Copier le parchemin'
+        copyBtn.style.cssText = 'margin-top:12px;width:100%;padding:9px;border-radius:9px;border:1px solid rgba(123,92,255,0.3);background:rgba(123,92,255,0.1);color:var(--t2);font-family:Outfit,sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s'
+        copyBtn.addEventListener('click', function() {
+          navigator.clipboard.writeText(parchContent).then(function() {
+            copyBtn.textContent = '✅ Copié — prêt à publier !'
+            setTimeout(function() { copyBtn.textContent = '📋 Copier le parchemin' }, 2500)
+          }).catch(function() { copyBtn.textContent = '⚠️ Impossible de copier, sélectionne le texte manuellement' })
+        })
+        parchWrap.appendChild(copyBtn)
+        wrapper.appendChild(parchWrap)
+      }
 
       if (imgDesc) {
         var imgWrap = document.createElement('div'); imgWrap.className = 'msg-img-wrap'
