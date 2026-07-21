@@ -261,10 +261,17 @@
             <span id="attach-name"></span>
             <button id="btn-clear-attach" style="background:none;border:none;color:var(--t4);cursor:pointer;font-size:14px">✕</button>
           </div>
+          <div id="nyxia-voice-toggle" style="display:none;padding:8px 20px;background:rgba(123,92,255,0.06);border-top:1px solid rgba(123,92,255,0.1);align-items:center;gap:8px;flex-shrink:0;font-size:12px;color:var(--t3)">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="checkbox" id="chk-nyxia-voice" onchange="_nyxiaVoiceAuto = this.checked">
+              🔊 Réponses vocales automatiques de NyXia (coût limité — désactivé par défaut)
+            </label>
+          </div>
           <div class="chat-input-wrap">
             <label title="PDF, image ou ZIP" style="flex-shrink:0;width:36px;height:36px;border-radius:9px;border:1px solid rgba(123,92,255,0.2);background:rgba(123,92,255,0.06);color:var(--t3);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px">
               📎<input type="file" id="chat-file" accept=".pdf,.zip,image/*" style="display:none">
             </label>
+            <button id="btn-mic" onclick="toggleMic()" title="Parler" style="flex-shrink:0;width:36px;height:36px;border-radius:9px;border:1px solid rgba(123,92,255,0.2);background:rgba(123,92,255,0.06);color:var(--t3);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px">🎤</button>
             <textarea class="chat-input" id="chat-input" placeholder="Partage ce qui te traverse l'esprit..." rows="1"></textarea>
             <button class="btn-send" id="btn-send" onclick="sendMessage()">➤</button>
           </div>
@@ -436,6 +443,8 @@
       document.getElementById('sidebar-avatar').textContent = clientName.charAt(0).toUpperCase()
       sendWelcome()
       refreshUnreadBadge()
+      var voiceToggle = document.getElementById('nyxia-voice-toggle')
+      if (voiceToggle) voiceToggle.style.display = 'flex'
     }
 
     function logout() {
@@ -633,6 +642,54 @@
 
     /* ═══════ CHAT ═══════ */
     var chatHistories = { nyxia: [], selena: [], kael: [], lena: [], alex: [], eric: [] }
+    var _nyxiaVoiceAuto = false
+    var _micRecognition = null, _micListening = false
+
+    // Reconnaissance vocale (parler → texte) — gratuite, native au navigateur.
+    // Disponible sur Chrome/Edge ; Safari inconsistant, Firefox non supporté.
+    function toggleMic() {
+      var SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition
+      if (!SpeechRecognitionAPI) {
+        alert("La reconnaissance vocale n'est pas disponible sur ce navigateur. Essaie avec Chrome ou Edge.")
+        return
+      }
+      var btn = document.getElementById('btn-mic')
+      if (_micListening) {
+        if (_micRecognition) _micRecognition.stop()
+        return
+      }
+      _micRecognition = new SpeechRecognitionAPI()
+      _micRecognition.lang = 'fr-FR'
+      _micRecognition.interimResults = false
+      _micRecognition.maxAlternatives = 1
+
+      _micRecognition.onstart = function() {
+        _micListening = true
+        btn.textContent = '⏹'
+        btn.style.background = 'rgba(255,75,110,0.15)'
+        btn.style.borderColor = 'rgba(255,75,110,0.4)'
+        btn.style.color = '#ff4b6e'
+      }
+      _micRecognition.onresult = function(event) {
+        var transcript = event.results[0][0].transcript
+        document.getElementById('chat-input').value = transcript
+        sendMessage()
+      }
+      _micRecognition.onerror = function() { resetMicBtn() }
+      _micRecognition.onend = function() { resetMicBtn() }
+      _micRecognition.start()
+    }
+
+    function resetMicBtn() {
+      _micListening = false
+      var btn = document.getElementById('btn-mic')
+      if (!btn) return
+      btn.textContent = '🎤'
+      btn.style.background = 'rgba(123,92,255,0.06)'
+      btn.style.borderColor = 'rgba(123,92,255,0.2)'
+      btn.style.color = 'var(--t3)'
+    }
+
     var isSpeaking = false, _currentAttachment = null, _currentAgent = 'nyxia'
 
     function currentHistory() { return chatHistories[_currentAgent] }
@@ -650,6 +707,8 @@
       var container = document.getElementById('chat-messages-' + key)
       if (container) container.classList.add('active-chat')
       _currentAgent = key
+      var voiceToggle = document.getElementById('nyxia-voice-toggle')
+      if (voiceToggle) voiceToggle.style.display = (key === 'nyxia') ? 'flex' : 'none'
     }
 
     function sendWelcome() {
@@ -828,7 +887,17 @@
         addBotMessage(reply)
         chatHistories[requestAgent].push({ role: 'assistant', content: reply })
         if (chatHistories[requestAgent].length > 20) chatHistories[requestAgent] = chatHistories[requestAgent].slice(-20)
-        if (isSpeaking) speakText(reply)
+        // Lecture automatique : toujours pour les Alphas (OpenAI, coût minime),
+        // seulement si activé pour NyXia (ElevenLabs, forfait mensuel).
+        var shouldAutoPlay = (requestAgent !== 'nyxia') || _nyxiaVoiceAuto
+        if (shouldAutoPlay) {
+          var msgsEl = document.getElementById('chat-messages-' + requestAgent)
+          var lastBotMsg = msgsEl ? msgsEl.querySelector('.msg.bot:last-child') : null
+          if (lastBotMsg) {
+            var speakBtn = Array.prototype.find.call(lastBotMsg.querySelectorAll('button'), function(b) { return b.textContent.indexOf('Écouter') !== -1 })
+            if (speakBtn) speakBtn.click()
+          }
+        }
         btn.disabled = false
       })
       .catch(() => { removeTyping(); addBotMessage('Petite interruption... réessaie dans un instant 💜'); btn.disabled = false })
